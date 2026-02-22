@@ -30,9 +30,7 @@
     background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
     border-radius:14px;
   }
-  .brand{
-    display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px
-  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
   .dot{width:10px;height:10px;border-radius:999px;background:var(--good);box-shadow:0 0 0 3px rgba(34,197,94,.18)}
   .btn{
     border:1px solid var(--border);
@@ -46,18 +44,10 @@
   .btn.primary{background:linear-gradient(180deg, rgba(77,163,255,.9), rgba(77,163,255,.65)); border-color:rgba(77,163,255,.8); color:#061021}
   .btn.primary:hover{filter:brightness(1.05)}
   .btn.good{background:linear-gradient(180deg, rgba(34,197,94,.9), rgba(34,197,94,.65)); border-color:rgba(34,197,94,.9); color:#061021}
-  .btn.good:disabled{opacity:.45; cursor:not-allowed; filter:none}
   .btn:disabled{opacity:.55; cursor:not-allowed}
   .btn.small{padding:8px 10px;border-radius:10px;font-weight:700}
-  .grid{
-    margin-top:14px;
-    display:grid;
-    grid-template-columns: 1fr;
-    gap:14px;
-  }
-  @media (min-width: 920px){
-    .grid{grid-template-columns: 360px 1fr}
-  }
+  .grid{margin-top:14px;display:grid;grid-template-columns:1fr;gap:14px}
+  @media (min-width: 920px){ .grid{grid-template-columns: 360px 1fr} }
   .card{
     border:1px solid var(--border);
     background:rgba(255,255,255,.05);
@@ -80,9 +70,7 @@
   }
   input[type="number"]{appearance:textfield}
   .mini{font-size:12px;color:var(--muted);line-height:1.35}
-  .list{
-    display:flex;flex-direction:column;gap:8px;margin-top:10px
-  }
+  .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
   .pill{
     display:flex;align-items:center;justify-content:space-between;
     gap:10px;
@@ -99,14 +87,77 @@
   .pill .x:hover{background:rgba(255,255,255,.08)}
   .divider{height:1px;background:var(--border);margin:12px 0}
 
+  /* SCOREBOARD (new) */
+  .scoreboard{
+    margin-top:12px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:rgba(255,255,255,.05);
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+    overflow:hidden;
+  }
+  .sbHead{
+    padding:10px 12px;
+    font-size:12px;
+    font-weight:900;
+    color:var(--muted);
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    border-bottom:1px solid rgba(255,255,255,.10);
+    text-transform:uppercase;
+    letter-spacing:.9px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .sbGrid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:10px;
+    padding:12px;
+  }
+  @media (min-width:720px){
+    .sbGrid{grid-template-columns: repeat(3, 1fr);}
+  }
+  @media (min-width:940px){
+    .sbGrid{grid-template-columns: repeat(4, 1fr);}
+  }
+  .sbCard{
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:rgba(0,0,0,.20);
+    padding:10px 12px;
+  }
+  .sbCard.active{
+    border-color: rgba(34,197,94,.7);
+    box-shadow: 0 0 0 3px rgba(34,197,94,.12) inset;
+    background:rgba(34,197,94,.08);
+  }
+  .sbName{
+    font-weight:900;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-bottom:6px;
+  }
+  .sbTag{
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid rgba(34,197,94,.6);
+    background:rgba(34,197,94,.14);
+    font-weight:900;
+  }
+  .sbLine{
+    display:flex;justify-content:space-between;gap:10px;
+    font-size:12px;
+    margin-top:4px;
+  }
+  .sbLine span{color:var(--muted);font-weight:800}
+  .sbTotal{
+    margin-top:8px;
+    display:flex;justify-content:space-between;gap:10px;
+    font-weight:900;
+  }
+
   /* Game area */
-  .gameHead{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:10px;margin-bottom:10px
-  }
-  .playerNav{
-    display:flex;align-items:center;gap:10px
-  }
+  .gameHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .playerNav{display:flex;align-items:center;gap:10px}
   .navBtn{
     width:40px;height:40px;border-radius:12px;
     display:flex;align-items:center;justify-content:center;
@@ -126,6 +177,7 @@
     font-size:12px;font-weight:800;
   }
   .chip.good{border-color:rgba(34,197,94,.6); background:rgba(34,197,94,.12)}
+
   .scoreSheet{
     margin-top:12px;
     border:1px solid var(--border);
@@ -143,12 +195,7 @@
   }
   .ssRow:first-child{border-top:none}
   .ssRow:hover{background:rgba(255,255,255,.06)}
-  .ssRow.locked{
-    cursor:default;
-    background:rgba(255,255,255,.02);
-    opacity:.9;
-  }
-  .ssRow.locked:hover{background:rgba(255,255,255,.02)}
+  .ssRow.locked{background:rgba(255,255,255,.02);opacity:.94}
   .ssLeft{display:flex;align-items:center;gap:10px}
   .badge{
     width:26px;height:26px;border-radius:9px;
@@ -175,22 +222,14 @@
     border-top:1px solid rgba(255,255,255,.10);
     display:flex;flex-direction:column;gap:6px;
   }
-  .bonusLine{
-    display:flex;justify-content:space-between;gap:10px;
-    font-weight:800;
-  }
+  .bonusLine{display:flex;justify-content:space-between;gap:10px;font-weight:800}
   .bonusLine span{color:var(--muted);font-weight:800}
   .totalsBox{
-    padding:12px;
-    background:rgba(0,0,0,.25);
+    padding:12px;background:rgba(0,0,0,.25);
     border-top:1px solid rgba(255,255,255,.10);
-    display:grid;
-    grid-template-columns: 1fr;
-    gap:8px;
+    display:grid;grid-template-columns:1fr;gap:8px;
   }
-  @media (min-width:520px){
-    .totalsBox{grid-template-columns: 1fr 1fr}
-  }
+  @media (min-width:520px){ .totalsBox{grid-template-columns: 1fr 1fr} }
   .totalItem{
     border:1px solid var(--border);
     border-radius:12px;
@@ -259,7 +298,7 @@
     z-index:50;
   }
   .modal{
-    width:min(620px, 100%);
+    width:min(640px, 100%);
     border:1px solid var(--border);
     background:linear-gradient(180deg, rgba(18,26,51,.96), rgba(10,16,34,.96));
     border-radius:16px;
@@ -325,6 +364,17 @@
   .modalActions{
     display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;
   }
+
+  .editHint{
+    margin-top:6px;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid rgba(77,163,255,.35);
+    background:rgba(77,163,255,.08);
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.35;
+  }
 </style>
 </head>
 <body>
@@ -334,6 +384,15 @@
     <div class="row">
       <button class="btn small" id="btnNewGame">New Game</button>
     </div>
+  </div>
+
+  <!-- SCOREBOARD -->
+  <div class="scoreboard hide" id="scoreboardWrap">
+    <div class="sbHead">
+      <div>Scoreboard</div>
+      <div class="mini" id="sbTurnInfo">Turn 1</div>
+    </div>
+    <div class="sbGrid" id="sbGrid"></div>
   </div>
 
   <!-- SETUP -->
@@ -422,19 +481,23 @@
 
       <div class="divider"></div>
 
-      <button class="btn good" id="btnNextTurn" disabled>Next Turn</button>
-      <div class="mini" style="margin-top:8px">
-        Next Turn unlocks after the current player records a score in one category (including 0).
+      <!-- Next Turn removed because handover is automatic -->
+      <div class="mini">
+        After you enter a score, the app automatically moves to the next player.
       </div>
     </div>
 
     <div class="card">
       <h2 style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
         <span>Score sheet</span>
-        <span class="mini">Click a category to enter a score.</span>
+        <span class="mini">Click a category to enter a score. Click again to edit.</span>
       </h2>
 
       <div class="scoreSheet" id="scoreSheet"></div>
+
+      <div class="editHint">
+        Editing is for correcting mistakes (e.g., misclick). Choosing <b>0</b> is still the normal way to cross out a category.
+      </div>
     </div>
   </div>
 </div>
@@ -446,8 +509,9 @@
       <h3 id="modalTitle">Select score</h3>
       <button class="btn small" id="btnCloseModal">Close</button>
     </div>
+    <div class="mini" id="modalSub" style="margin-bottom:10px"></div>
     <div class="optGrid" id="optGrid"></div>
-    <div class="hint">
+    <div class="hint" id="modalHint">
       Choose the score you want to record (or 0 to cross it out).
     </div>
   </div>
@@ -488,7 +552,6 @@ let players = []; // {name, scores, locked, diceOn, dice, held, rollsLeft}
 let curIndex = 0;
 let turnNumber = 1;
 
-let turnScored = false;
 let gameOverShown = false;
 
 /* ---------------------------
@@ -529,6 +592,9 @@ function isGameFinished(){
 ----------------------------*/
 const setupView = document.getElementById("setupView");
 const gameView  = document.getElementById("gameView");
+const scoreboardWrap = document.getElementById("scoreboardWrap");
+const sbGrid = document.getElementById("sbGrid");
+const sbTurnInfo = document.getElementById("sbTurnInfo");
 
 const playerName = document.getElementById("playerName");
 const playerList = document.getElementById("playerList");
@@ -582,7 +648,6 @@ document.getElementById("btnStart").addEventListener("click", ()=>{
 
   curIndex = 0;
   turnNumber = 1;
-  turnScored = false;
   gameOverShown = false;
 
   players.forEach(p=>{
@@ -594,11 +659,13 @@ document.getElementById("btnStart").addEventListener("click", ()=>{
 
   setupView.classList.add("hide");
   gameView.classList.remove("hide");
+  scoreboardWrap.classList.remove("hide");
   renderAll();
 });
 
 /* ---------------------------
-   Game UI: navigation and turn
+   Game UI: navigation
+   (kept as an inspection tool)
 ----------------------------*/
 document.getElementById("btnPrev").addEventListener("click", ()=>{
   curIndex = (curIndex - 1 + players.length) % players.length;
@@ -613,13 +680,13 @@ function startNewGameToSetup(){
   players = [];
   curIndex = 0;
   turnNumber = 1;
-  turnScored = false;
   gameOverShown = false;
 
   playerList.innerHTML = "";
   bonusTarget.value = "63";
   bonusPoints.value = "50";
 
+  scoreboardWrap.classList.add("hide");
   gameView.classList.add("hide");
   setupView.classList.remove("hide");
 }
@@ -655,9 +722,11 @@ document.getElementById("btnRoll").addEventListener("click", ()=>{
   renderAll();
 });
 
-document.getElementById("btnNextTurn").addEventListener("click", ()=>{
-  if(!turnScored) return;
-
+/* ---------------------------
+   AUTO HANDOVER after scoring
+----------------------------*/
+function advanceToNextPlayer(){
+  if(players.length === 0) return;
   curIndex = (curIndex + 1) % players.length;
   if(curIndex === 0) turnNumber++;
 
@@ -665,10 +734,7 @@ document.getElementById("btnNextTurn").addEventListener("click", ()=>{
   p.dice = [0,0,0,0,0];
   p.held = [false,false,false,false,false];
   p.rollsLeft = 3;
-
-  turnScored = false;
-  renderAll();
-});
+}
 
 /* ---------------------------
    Score sheet render
@@ -679,7 +745,6 @@ const curTurn = document.getElementById("curTurn");
 const chipBonus = document.getElementById("chipBonus");
 const chipDice = document.getElementById("chipDice");
 const chipRolls = document.getElementById("chipRolls");
-const btnNextTurn = document.getElementById("btnNextTurn");
 const btnRoll = document.getElementById("btnRoll");
 
 function renderAll(){
@@ -694,17 +759,40 @@ function renderAll(){
   chipDice.className = "chip " + (p.diceOn ? "good" : "");
   chipRolls.textContent = `Rolls left: ${p.diceOn ? p.rollsLeft : "-"}`;
 
-  btnNextTurn.disabled = !turnScored;
-
   btnRoll.disabled = !p.diceOn || p.rollsLeft <= 0;
   document.getElementById("diceRow").classList.toggle("hide", !p.diceOn);
   document.getElementById("btnToggleDice").textContent = p.diceOn ? "Hide Digital Dice" : "Use Digital Dice";
 
+  sbTurnInfo.textContent = `Turn ${turnNumber} • Current: ${p.name}`;
+  renderScoreboard();
   renderDice();
   renderScoreSheet();
 
-  // If game finished, show end screen once
   maybeShowGameOver();
+}
+
+function renderScoreboard(){
+  sbGrid.innerHTML = "";
+  players.forEach((pl, idx)=>{
+    const upper = upperTotal(pl);
+    const bonus = bonusEarned(pl);
+    const lower = lowerTotal(pl);
+    const total = grandTotal(pl);
+
+    const card = document.createElement("div");
+    card.className = "sbCard" + (idx === curIndex ? " active" : "");
+    card.innerHTML = `
+      <div class="sbName">
+        <div>${escapeHtml(pl.name)}</div>
+        ${idx === curIndex ? `<div class="sbTag">Turn</div>` : ``}
+      </div>
+      <div class="sbLine"><span>Upper</span><b>${upper}</b></div>
+      <div class="sbLine"><span>Bonus</span><b>${bonus}</b></div>
+      <div class="sbLine"><span>Lower</span><b>${lower}</b></div>
+      <div class="sbTotal"><span>Total</span><b>${total}</b></div>
+    `;
+    sbGrid.appendChild(card);
+  });
 }
 
 function renderScoreSheet(){
@@ -743,14 +831,12 @@ function sectionTitle(text){
   d.textContent = text;
   return d;
 }
-
 function totalItem(label, val){
   const d = document.createElement("div");
   d.className = "totalItem";
   d.innerHTML = `<span>${label}</span><b>${val}</b>`;
   return d;
 }
-
 function scoreRow(category, badgeNum, p){
   const row = document.createElement("div");
   row.className = "ssRow";
@@ -762,7 +848,6 @@ function scoreRow(category, badgeNum, p){
     <div class="badge">${badgeNum}</div>
     <div class="ssName">${category}</div>
   `;
-
   const right = document.createElement("div");
   right.className = "ssVal";
   right.textContent = p.locked[category] ? p.scores[category] : "";
@@ -770,9 +855,7 @@ function scoreRow(category, badgeNum, p){
   row.appendChild(left);
   row.appendChild(right);
 
-  if(!p.locked[category]){
-    row.addEventListener("click", ()=> openScoreModal(category));
-  }
+  row.addEventListener("click", ()=> openScoreModal(category));
   return row;
 }
 
@@ -811,15 +894,12 @@ function renderDice(){
         renderAll();
       });
     }
-
     diceRow.appendChild(die);
   }
 }
-
 function setPips(pips, val){
   pips.forEach(dot=>dot.style.opacity="0");
   const show = (...idxs)=> idxs.forEach(i=> pips[i-1].style.opacity="1");
-
   switch(val){
     case 1: show(1); break;
     case 2: show(2,5); break;
@@ -832,11 +912,13 @@ function setPips(pips, val){
 }
 
 /* ---------------------------
-   Score select modal
+   Score select / Edit modal
 ----------------------------*/
 const modalBackdrop = document.getElementById("modalBackdrop");
 const modalTitle = document.getElementById("modalTitle");
+const modalSub = document.getElementById("modalSub");
 const optGrid = document.getElementById("optGrid");
+const modalHint = document.getElementById("modalHint");
 const btnCloseModal = document.getElementById("btnCloseModal");
 
 btnCloseModal.addEventListener("click", closeModal);
@@ -844,21 +926,41 @@ modalBackdrop.addEventListener("click", (e)=>{
   if(e.target === modalBackdrop) closeModal();
 });
 
+let modalCategory = null;
+
 function openScoreModal(category){
   const p = players[curIndex];
-  if(p.locked[category]) return;
+  if(!p) return;
 
-  modalTitle.textContent = `Select score for: ${category}`;
+  modalCategory = category;
+  const isEdit = !!p.locked[category];
+  const oldVal = p.scores[category] || 0;
+
   optGrid.innerHTML = "";
+
+  if(isEdit){
+    modalTitle.textContent = `Edit score: ${category}`;
+    modalSub.textContent = `Current value: ${oldVal}`;
+    modalHint.textContent = `Editing changes a previously entered score. (0 is still the normal way to cross out a category.)`;
+  }else{
+    modalTitle.textContent = `Select score for: ${category}`;
+    modalSub.textContent = "";
+    modalHint.textContent = `Choose the score you want to record (or 0 to cross it out).`;
+  }
 
   const opts = getOptionsForCategory(category);
   opts.forEach(v=>{
     const b = document.createElement("div");
     b.className = "optBtn";
     b.textContent = v;
+
+    if(isEdit && v === oldVal){
+      b.style.borderColor = "rgba(34,197,94,.8)";
+      b.style.background = "rgba(34,197,94,.12)";
+    }
+
     b.addEventListener("click", ()=>{
-      commitScore(category, v);
-      closeModal();
+      commitScoreFromModal(v);
     });
     optGrid.appendChild(b);
   });
@@ -867,25 +969,44 @@ function openScoreModal(category){
   modalBackdrop.setAttribute("aria-hidden","false");
 }
 
-function closeModal(){
-  modalBackdrop.style.display = "none";
-  modalBackdrop.setAttribute("aria-hidden","true");
+function commitScoreFromModal(newValue){
+  const p = players[curIndex];
+  const cat = modalCategory;
+  if(!p || !cat) return;
+
+  const wasLocked = !!p.locked[cat];
+  const oldVal = p.scores[cat] || 0;
+
+  if(wasLocked && newValue !== oldVal){
+    const ok = confirm(`Change "${cat}" from ${oldVal} to ${newValue}?`);
+    if(!ok) return;
+  }
+
+  p.scores[cat] = newValue;
+  p.locked[cat] = true;
+
+  // If this was a NEW score (not edit), auto-advance turn
+  if(!wasLocked){
+    // Reset dice for current player before moving on
+    p.dice = [0,0,0,0,0];
+    p.held = [false,false,false,false,false];
+    p.rollsLeft = 3;
+
+    closeModal();
+    advanceToNextPlayer();
+    renderAll();
+    return;
+  }
+
+  // Editing does not change whose turn it is
+  closeModal();
+  renderAll();
 }
 
-function commitScore(category, value){
-  const p = players[curIndex];
-  if(p.locked[category]) return;
-
-  p.scores[category] = value;
-  p.locked[category] = true;
-
-  turnScored = true;
-
-  p.dice = [0,0,0,0,0];
-  p.held = [false,false,false,false,false];
-  p.rollsLeft = 3;
-
-  renderAll();
+function closeModal(){
+  modalCategory = null;
+  modalBackdrop.style.display = "none";
+  modalBackdrop.setAttribute("aria-hidden","true");
 }
 
 function getOptionsForCategory(category){
@@ -921,7 +1042,7 @@ function getOptionsForCategory(category){
       return arr;
     }
     case "Yahtzee":
-      add([0, settings.bonusPoints]); // default 50; follows your bonus points setting
+      add([0, settings.bonusPoints]);
       return uniqueSorted(opts);
     default:
       return [0];
@@ -955,7 +1076,6 @@ function maybeShowGameOver(){
 
   gameOverShown = true;
 
-  // Build standings
   const standings = players.map(p=>({
     name: p.name,
     total: grandTotal(p),
