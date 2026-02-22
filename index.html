@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Yahtzee Score Sheet – Mr. McLean Math</title>
+<style>
+  :root{
+    --bg:#0b1220;
+    --panel:#121a33;
+    --text:#eaf0ff;
+    --muted:#b9c5ff;
+    --border:rgba(255,255,255,.14);
+    --accent:#4da3ff;
+    --good:#22c55e;
+    --warn:#fbbf24;
+    --bad:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background: radial-gradient(1200px 700px at 20% 10%, #132152 0%, var(--bg) 55%, #070b12 100%);
+    color:var(--text);
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:16px 14px 40px}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:10px 12px;border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border-radius:14px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px
+  }
+  .dot{width:10px;height:10px;border-radius:999px;background:var(--good);box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+  .btn{
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.06);
+    color:var(--text);
+    padding:10px 12px;border-radius:12px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .btn:hover{background:rgba(255,255,255,.09)}
+  .btn.primary{background:linear-gradient(180deg, rgba(77,163,255,.9), rgba(77,163,255,.65)); border-color:rgba(77,163,255,.8); color:#061021}
+  .btn.primary:hover{filter:brightness(1.05)}
+  .btn.good{background:linear-gradient(180deg, rgba(34,197,94,.9), rgba(34,197,94,.65)); border-color:rgba(34,197,94,.9); color:#061021}
+  .btn.good:disabled{opacity:.45; cursor:not-allowed; filter:none}
+  .btn:disabled{opacity:.55; cursor:not-allowed}
+  .btn.small{padding:8px 10px;border-radius:10px;font-weight:700}
+  .grid{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:14px;
+  }
+  @media (min-width: 920px){
+    .grid{grid-template-columns: 360px 1fr}
+  }
+  .card{
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.05);
+    border-radius:16px;
+    padding:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.22);
+  }
+  .card h2{margin:0 0 10px;font-size:18px}
+  .muted{color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center}
+  .row.wrap{flex-wrap:wrap}
+  input[type="text"], input[type="number"]{
+    width:100%;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:rgba(0,0,0,.25);
+    color:var(--text);
+    outline:none;
+  }
+  input[type="number"]{appearance:textfield}
+  .mini{font-size:12px;color:var(--muted);line-height:1.35}
+  .list{
+    display:flex;flex-direction:column;gap:8px;margin-top:10px
+  }
+  .pill{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;border:1px solid var(--border);
+    background:rgba(255,255,255,.04);
+    border-radius:12px;
+  }
+  .pill b{font-size:14px}
+  .pill .x{
+    width:28px;height:28px;border-radius:10px;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;background:rgba(0,0,0,.22)
+  }
+  .pill .x:hover{background:rgba(255,255,255,.08)}
+  .divider{height:1px;background:var(--border);margin:12px 0}
+
+  /* Game area */
+  .gameHead{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;margin-bottom:10px
+  }
+  .playerNav{
+    display:flex;align-items:center;gap:10px
+  }
+  .navBtn{
+    width:40px;height:40px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.05);
+    cursor:pointer;font-size:18px;font-weight:900
+  }
+  .navBtn:hover{background:rgba(255,255,255,.09)}
+  .who{display:flex;flex-direction:column;gap:2px}
+  .who .name{font-size:18px;font-weight:900}
+  .who .turn{font-size:12px;color:var(--muted)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    padding:7px 10px;border-radius:999px;
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--border);
+    font-size:12px;font-weight:800;
+  }
+  .chip.good{border-color:rgba(34,197,94,.6); background:rgba(34,197,94,.12)}
+  .scoreSheet{
+    margin-top:12px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  .ssRow{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;
+    padding:11px 12px;
+    background:rgba(255,255,255,.03);
+    border-top:1px solid rgba(255,255,255,.08);
+    cursor:pointer;
+    user-select:none;
+  }
+  .ssRow:first-child{border-top:none}
+  .ssRow:hover{background:rgba(255,255,255,.06)}
+  .ssRow.locked{
+    cursor:default;
+    background:rgba(255,255,255,.02);
+    opacity:.9;
+  }
+  .ssRow.locked:hover{background:rgba(255,255,255,.02)}
+  .ssLeft{display:flex;align-items:center;gap:10px}
+  .badge{
+    width:26px;height:26px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--border);
+    background:rgba(0,0,0,.25);
+    font-weight:900;font-size:12px;
+  }
+  .ssName{font-weight:800}
+  .ssVal{font-weight:900}
+  .sectionTitle{
+    padding:10px 12px;
+    font-size:12px;
+    font-weight:900;
+    color:var(--muted);
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    border-top:1px solid rgba(255,255,255,.08);
+    text-transform:uppercase;
+    letter-spacing:.9px;
+  }
+  .bonusBox{
+    padding:10px 12px;
+    background:rgba(77,163,255,.08);
+    border-top:1px solid rgba(255,255,255,.10);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .bonusLine{
+    display:flex;justify-content:space-between;gap:10px;
+    font-weight:800;
+  }
+  .bonusLine span{color:var(--muted);font-weight:800}
+  .totalsBox{
+    padding:12px;
+    background:rgba(0,0,0,.25);
+    border-top:1px solid rgba(255,255,255,.10);
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:8px;
+  }
+  @media (min-width:520px){
+    .totalsBox{grid-template-columns: 1fr 1fr}
+  }
+  .totalItem{
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px 12px;
+    background:rgba(255,255,255,.03);
+    display:flex;justify-content:space-between;gap:10px;
+    font-weight:900;
+  }
+  .totalItem span{color:var(--muted);font-weight:800}
+
+  .diceZone{
+    margin-top:12px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px;
+    background:rgba(255,255,255,.03);
+  }
+  .diceTop{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;flex-wrap:wrap
+  }
+  .diceTopLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .diceRow{
+    display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px
+  }
+
+  .die{
+    width:58px;height:58px;border-radius:14px;
+    background:linear-gradient(180deg, #ffffff, #e7eefc);
+    border:1px solid rgba(0,0,0,.15);
+    position:relative;
+    box-shadow:0 10px 18px rgba(0,0,0,.22);
+    cursor:pointer;
+    user-select:none;
+  }
+  .die.blank{
+    cursor:default;
+    background:rgba(255,255,255,.08);
+    border:1px dashed rgba(255,255,255,.28);
+    box-shadow:none
+  }
+  .die.held{
+    outline:3px solid rgba(34,197,94,.8);
+    outline-offset:2px;
+    transform: translateY(-1px);
+  }
+  .die.frozen{
+    cursor:default;
+    opacity:.92;
+  }
+
+  .pip{width:10px;height:10px;border-radius:999px;background:#0b1220;position:absolute;opacity:0}
+  .p1{left:50%;top:50%;transform:translate(-50%,-50%)}
+  .p2{left:16px;top:16px}
+  .p3{right:16px;top:16px}
+  .p4{left:16px;bottom:16px}
+  .p5{right:16px;bottom:16px}
+  .p6{left:16px;top:50%;transform:translateY(-50%)}
+  .p7{right:16px;top:50%;transform:translateY(-50%)}
+
+  /* Modal */
+  .modalBackdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);
+    display:none;align-items:center;justify-content:center;
+    padding:16px;
+    z-index:50;
+  }
+  .modal{
+    width:min(560px, 100%);
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(18,26,51,.96), rgba(10,16,34,.96));
+    border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+    padding:14px;
+  }
+  .modalHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .modalHead h3{margin:0;font-size:16px}
+  .optGrid{
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:10px;
+  }
+  @media (max-width:520px){ .optGrid{grid-template-columns: repeat(4, 1fr)} }
+  @media (max-width:400px){ .optGrid{grid-template-columns: repeat(3, 1fr)} }
+  .optBtn{
+    padding:10px 0;border-radius:12px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.05);
+    color:var(--text);
+    cursor:pointer;
+    font-weight:900;
+    text-align:center;
+  }
+  .optBtn:hover{background:rgba(255,255,255,.09)}
+  .hint{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.35}
+  .hide{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> Yahtzee Score Sheet <span class="muted">• Mr. McLean Math</span></div>
+    <div class="row">
+      <button class="btn small" id="btnNewGame">New Game</button>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="grid" id="setupView">
+    <div class="card">
+      <h2>Game setup</h2>
+      <div class="mini">Add players, set the bonus, then start. Digital dice are optional and each player can toggle them on/off during their own turns.</div>
+
+      <div class="divider"></div>
+
+      <div class="row" style="gap:10px; align-items:flex-end;">
+        <div style="flex:1">
+          <label class="mini">Player name</label>
+          <input type="text" id="playerName" placeholder="e.g. Jonathan" />
+        </div>
+        <button class="btn primary" id="btnAddPlayer">Add</button>
+      </div>
+
+      <div class="list" id="playerList"></div>
+
+      <div class="divider"></div>
+
+      <div class="row wrap">
+        <div style="flex:1; min-width:170px">
+          <label class="mini">Bonus target</label>
+          <input type="number" id="bonusTarget" value="63" min="0" />
+        </div>
+        <div style="flex:1; min-width:170px">
+          <label class="mini">Bonus points</label>
+          <input type="number" id="bonusPoints" value="50" min="0" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn good" id="btnStart">Start game</button>
+      <div class="mini" style="margin-top:8px">
+        Rule used here: If Upper Total reaches the Bonus Target, the Bonus Points are added.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>How scoring works in this app</h2>
+      <div class="mini">
+        This app does <b>not</b> tell players what they rolled. It is a score sheet that keeps totals and locks categories.
+        <br><br>
+        When you click a category, a popup shows the possible score values for that category (including <b>0</b> if you want to cross it out).
+        The player picks what they claim.
+        <br><br>
+        Digital dice are optional and follow real Yahtzee flow: 3 rolls max, click dice to hold between rolls.
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="grid hide" id="gameView">
+    <div class="card" id="leftPanel">
+      <div class="gameHead">
+        <div class="playerNav">
+          <div class="navBtn" id="btnPrev" title="Previous player">&#8249;</div>
+          <div class="who">
+            <div class="name" id="curName">Player</div>
+            <div class="turn" id="curTurn">Turn 1</div>
+          </div>
+          <div class="navBtn" id="btnNext" title="Next player">&#8250;</div>
+        </div>
+        <div class="chips">
+          <div class="chip" id="chipBonus">Bonus: 0/63</div>
+          <div class="chip" id="chipDice">Digital Dice: Off</div>
+        </div>
+      </div>
+
+      <div class="diceZone">
+        <div class="diceTop">
+          <div class="diceTopLeft">
+            <button class="btn small" id="btnToggleDice">Use Digital Dice</button>
+            <button class="btn primary small" id="btnRoll">Roll</button>
+          </div>
+          <div class="chip" id="chipRolls">Rolls left: 3</div>
+        </div>
+        <div class="diceRow" id="diceRow"></div>
+        <div class="mini" style="margin-top:10px">
+          Roll up to 3 times. Click dice to hold between rolls. After the 3rd roll, holds freeze and rolling is disabled.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn good" id="btnNextTurn" disabled>Next Turn</button>
+      <div class="mini" style="margin-top:8px">
+        Next Turn unlocks after the current player records a score in one category (including 0).
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+        <span>Score sheet</span>
+        <span class="mini">Click a category to enter a score.</span>
+      </h2>
+
+      <div class="scoreSheet" id="scoreSheet"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modalBackdrop" id="modalBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modalHead">
+      <h3 id="modalTitle">Select score</h3>
+      <button class="btn small" id="btnCloseModal">Close</button>
+    </div>
+    <div class="optGrid" id="optGrid"></div>
+    <div class="hint">
+      Choose the score you want to record (or 0 to cross it out).
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------------------
+   Data model
+----------------------------*/
+const UPPER = ["Ones","Twos","Threes","Fours","Fives","Sixes"];
+const LOWER = [
+  "One Pair","Two Pairs","Three of a kind","Four of a kind",
+  "Small straight","Large straight","Full House","Chance","Yahtzee"
+];
+
+let settings = { bonusTarget:63, bonusPoints:50 };
+
+let players = []; // {name, scores, locked, diceOn, dice, held, rollsLeft}
+let curIndex = 0;
+let turnNumber = 1;
+
+let turnScored = false; // must score before Next Turn enabled
+
+/* ---------------------------
+   Helpers
+----------------------------*/
+function makeBlankScores(){
+  const scores = {};
+  [...UPPER, ...LOWER].forEach(k => scores[k] = 0);
+  return scores;
+}
+function makeBlankLocked(){
+  const locked = {};
+  [...UPPER, ...LOWER].forEach(k => locked[k] = false);
+  return locked;
+}
+function upperTotal(p){
+  return UPPER.reduce((s,k)=>s + (p.scores[k]||0), 0);
+}
+function bonusEarned(p){
+  return upperTotal(p) >= settings.bonusTarget ? settings.bonusPoints : 0;
+}
+function lowerTotal(p){
+  return LOWER.reduce((s,k)=>s + (p.scores[k]||0), 0);
+}
+function grandTotal(p){
+  return upperTotal(p) + bonusEarned(p) + lowerTotal(p);
+}
+function clampInt(n, fallback=0){
+  const v = parseInt(n,10);
+  return Number.isFinite(v) ? v : fallback;
+}
+function escapeHtml(str){
+  return (str||"").replace(/[&<>"']/g, (m)=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+/* ---------------------------
+   Setup UI
+----------------------------*/
+const setupView = document.getElementById("setupView");
+const gameView  = document.getElementById("gameView");
+
+const playerName = document.getElementById("playerName");
+const playerList = document.getElementById("playerList");
+const bonusTarget = document.getElementById("bonusTarget");
+const bonusPoints = document.getElementById("bonusPoints");
+
+document.getElementById("btnAddPlayer").addEventListener("click", ()=>{
+  const name = (playerName.value || "").trim();
+  if(!name) return;
+  players.push({
+    name,
+    scores: makeBlankScores(),
+    locked: makeBlankLocked(),
+    diceOn: false,
+    dice: [0,0,0,0,0],
+    held: [false,false,false,false,false],
+    rollsLeft: 3
+  });
+  playerName.value = "";
+  renderPlayerList();
+});
+
+playerName.addEventListener("keydown",(e)=>{
+  if(e.key === "Enter"){
+    e.preventDefault();
+    document.getElementById("btnAddPlayer").click();
+  }
+});
+
+function renderPlayerList(){
+  playerList.innerHTML = "";
+  players.forEach((p, idx)=>{
+    const div = document.createElement("div");
+    div.className = "pill";
+    div.innerHTML = `<b>${escapeHtml(p.name)}</b><div class="x" title="Remove">×</div>`;
+    div.querySelector(".x").addEventListener("click", ()=>{
+      players.splice(idx,1);
+      renderPlayerList();
+    });
+    playerList.appendChild(div);
+  });
+}
+
+document.getElementById("btnStart").addEventListener("click", ()=>{
+  if(players.length < 1){
+    alert("Add at least one player.");
+    return;
+  }
+  settings.bonusTarget = Math.max(0, clampInt(bonusTarget.value, 63));
+  settings.bonusPoints = Math.max(0, clampInt(bonusPoints.value, 50));
+
+  curIndex = 0;
+  turnNumber = 1;
+  turnScored = false;
+
+  // reset per-player dice states
+  players.forEach(p=>{
+    p.diceOn = false;
+    p.dice = [0,0,0,0,0];
+    p.held = [false,false,false,false,false];
+    p.rollsLeft = 3;
+  });
+
+  setupView.classList.add("hide");
+  gameView.classList.remove("hide");
+  renderAll();
+});
+
+/* ---------------------------
+   Game UI: navigation and turn
+----------------------------*/
+document.getElementById("btnPrev").addEventListener("click", ()=>{
+  curIndex = (curIndex - 1 + players.length) % players.length;
+  renderAll();
+});
+document.getElementById("btnNext").addEventListener("click", ()=>{
+  curIndex = (curIndex + 1) % players.length;
+  renderAll();
+});
+
+document.getElementById("btnNewGame").addEventListener("click", ()=>{
+  if(confirm("Start a new game? This will clear scores.")){
+    players = [];
+    curIndex = 0;
+    turnNumber = 1;
+    turnScored = false;
+
+    playerList.innerHTML = "";
+    bonusTarget.value = "63";
+    bonusPoints.value = "50";
+
+    gameView.classList.add("hide");
+    setupView.classList.remove("hide");
+  }
+});
+
+document.getElementById("btnToggleDice").addEventListener("click", ()=>{
+  const p = players[curIndex];
+  p.diceOn = !p.diceOn;
+
+  // If turning off, clear shown dice + holds for cleanliness
+  if(!p.diceOn){
+    p.dice = [0,0,0,0,0];
+    p.held = [false,false,false,false,false];
+    p.rollsLeft = 3;
+  }
+  renderAll();
+});
+
+document.getElementById("btnRoll").addEventListener("click", ()=>{
+  const p = players[curIndex];
+  if(!p.diceOn) return;
+  if(p.rollsLeft <= 0) return;
+
+  // Roll only non-held dice
+  for(let i=0;i<5;i++){
+    if(!p.held[i]){
+      p.dice[i] = Math.floor(Math.random()*6)+1;
+    }
+  }
+  p.rollsLeft--;
+
+  // Freeze holds after 3rd roll (rollsLeft now 0)
+  if(p.rollsLeft === 0){
+    // nothing else needed here; UI logic will prevent toggling
+  }
+
+  renderAll();
+});
+
+document.getElementById("btnNextTurn").addEventListener("click", ()=>{
+  if(!turnScored) return;
+
+  // Move to next player
+  curIndex = (curIndex + 1) % players.length;
+  // Increase turn count each full round
+  if(curIndex === 0) turnNumber++;
+
+  // Reset next player's dice state for their turn (if they use digital dice)
+  const p = players[curIndex];
+  p.dice = [0,0,0,0,0];
+  p.held = [false,false,false,false,false];
+  p.rollsLeft = 3;
+
+  // Reset turn state
+  turnScored = false;
+
+  renderAll();
+});
+
+/* ---------------------------
+   Score sheet render
+----------------------------*/
+const scoreSheet = document.getElementById("scoreSheet");
+const curName = document.getElementById("curName");
+const curTurn = document.getElementById("curTurn");
+const chipBonus = document.getElementById("chipBonus");
+const chipDice = document.getElementById("chipDice");
+const chipRolls = document.getElementById("chipRolls");
+const btnNextTurn = document.getElementById("btnNextTurn");
+const btnRoll = document.getElementById("btnRoll");
+
+function renderAll(){
+  const p = players[curIndex];
+
+  curName.textContent = p.name;
+  curTurn.textContent = `Turn ${turnNumber}`;
+  chipBonus.textContent = `Bonus: ${upperTotal(p)}/${settings.bonusTarget}`;
+  chipDice.textContent = `Digital Dice: ${p.diceOn ? "On" : "Off"}`;
+  chipDice.className = "chip " + (p.diceOn ? "good" : "");
+  chipRolls.textContent = `Rolls left: ${p.diceOn ? p.rollsLeft : "-"}`;
+
+  btnNextTurn.disabled = !turnScored;
+
+  // Dice controls
+  btnRoll.disabled = !p.diceOn || p.rollsLeft <= 0;
+  document.getElementById("diceRow").classList.toggle("hide", !p.diceOn);
+  document.getElementById("btnToggleDice").textContent = p.diceOn ? "Hide Digital Dice" : "Use Digital Dice";
+
+  renderDice();
+  renderScoreSheet();
+}
+
+function renderScoreSheet(){
+  const p = players[curIndex];
+  scoreSheet.innerHTML = "";
+
+  scoreSheet.appendChild(sectionTitle("Upper section"));
+  UPPER.forEach((cat, i)=> scoreSheet.appendChild(scoreRow(cat, i+1, p)));
+
+  const b = document.createElement("div");
+  b.className = "bonusBox";
+  const uTot = upperTotal(p);
+  const bEarn = bonusEarned(p);
+  b.innerHTML = `
+    <div class="bonusLine"><span>Upper total</span><b>${uTot}</b></div>
+    <div class="bonusLine"><span>Bonus progress</span><b>${uTot} / ${settings.bonusTarget}</b></div>
+    <div class="bonusLine"><span>Bonus</span><b>${bEarn}</b></div>
+  `;
+  scoreSheet.appendChild(b);
+
+  scoreSheet.appendChild(sectionTitle("Lower section"));
+  LOWER.forEach((cat, i)=> scoreSheet.appendChild(scoreRow(cat, i+1, p)));
+
+  const totals = document.createElement("div");
+  totals.className = "totalsBox";
+  totals.appendChild(totalItem("Upper total", upperTotal(p)));
+  totals.appendChild(totalItem("Bonus", bonusEarned(p)));
+  totals.appendChild(totalItem("Lower total", lowerTotal(p)));
+  totals.appendChild(totalItem("Total", grandTotal(p)));
+  scoreSheet.appendChild(totals);
+}
+
+function sectionTitle(text){
+  const d = document.createElement("div");
+  d.className = "sectionTitle";
+  d.textContent = text;
+  return d;
+}
+
+function totalItem(label, val){
+  const d = document.createElement("div");
+  d.className = "totalItem";
+  d.innerHTML = `<span>${label}</span><b>${val}</b>`;
+  return d;
+}
+
+function scoreRow(category, badgeNum, p){
+  const row = document.createElement("div");
+  row.className = "ssRow";
+  if(p.locked[category]) row.classList.add("locked");
+
+  const left = document.createElement("div");
+  left.className = "ssLeft";
+  left.innerHTML = `
+    <div class="badge">${badgeNum}</div>
+    <div class="ssName">${category}</div>
+  `;
+
+  const right = document.createElement("div");
+  right.className = "ssVal";
+  right.textContent = p.locked[category] ? p.scores[category] : "";
+
+  row.appendChild(left);
+  row.appendChild(right);
+
+  if(!p.locked[category]){
+    row.addEventListener("click", ()=> openScoreModal(category));
+  }
+  return row;
+}
+
+/* ---------------------------
+   Dice with pips + holds
+----------------------------*/
+function renderDice(){
+  const p = players[curIndex];
+  const diceRow = document.getElementById("diceRow");
+  diceRow.innerHTML = "";
+  if(!p.diceOn) return;
+
+  const hasRolledAtLeastOnce = (p.rollsLeft < 3);
+  const holdsFrozen = (p.rollsLeft === 0);
+
+  for(let i=0;i<5;i++){
+    const val = p.dice[i];
+    const die = document.createElement("div");
+    die.className = "die" + (val === 0 ? " blank" : "");
+    if(p.held[i]) die.classList.add("held");
+    if(holdsFrozen) die.classList.add("frozen");
+
+    // 7 pips
+    const pips = [];
+    for(let k=1;k<=7;k++){
+      const dot = document.createElement("div");
+      dot.className = "pip p" + k;
+      pips.push(dot);
+      die.appendChild(dot);
+    }
+    setPips(pips, val);
+
+    // Hold toggling rules:
+    // - cannot hold before first roll
+    // - can hold between rolls (rollsLeft 2 or 1)
+    // - holds freeze after third roll (rollsLeft 0)
+    const canToggleHold = hasRolledAtLeastOnce && !holdsFrozen && val !== 0;
+
+    if(canToggleHold){
+      die.addEventListener("click", ()=>{
+        p.held[i] = !p.held[i];
+        renderAll();
+      });
+    }
+
+    diceRow.appendChild(die);
+  }
+}
+
+function setPips(pips, val){
+  pips.forEach(dot=>dot.style.opacity="0");
+  const show = (...idxs)=> idxs.forEach(i=> pips[i-1].style.opacity="1");
+
+  switch(val){
+    case 1: show(1); break;
+    case 2: show(2,5); break;
+    case 3: show(2,1,5); break;
+    case 4: show(2,3,4,5); break;
+    case 5: show(2,3,1,4,5); break;
+    case 6: show(2,3,4,5,6,7); break;
+    default: break;
+  }
+}
+
+/* ---------------------------
+   Modal scoring options
+----------------------------*/
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modalTitle = document.getElementById("modalTitle");
+const optGrid = document.getElementById("optGrid");
+const btnCloseModal = document.getElementById("btnCloseModal");
+
+btnCloseModal.addEventListener("click", closeModal);
+modalBackdrop.addEventListener("click", (e)=>{
+  if(e.target === modalBackdrop) closeModal();
+});
+
+function openScoreModal(category){
+  const p = players[curIndex];
+  if(p.locked[category]) return;
+
+  modalTitle.textContent = `Select score for: ${category}`;
+  optGrid.innerHTML = "";
+
+  const opts = getOptionsForCategory(category);
+  opts.forEach(v=>{
+    const b = document.createElement("div");
+    b.className = "optBtn";
+    b.textContent = v;
+    b.addEventListener("click", ()=>{
+      commitScore(category, v);
+      closeModal();
+    });
+    optGrid.appendChild(b);
+  });
+
+  modalBackdrop.style.display = "flex";
+  modalBackdrop.setAttribute("aria-hidden","false");
+}
+
+function closeModal(){
+  modalBackdrop.style.display = "none";
+  modalBackdrop.setAttribute("aria-hidden","true");
+}
+
+function commitScore(category, value){
+  const p = players[curIndex];
+  if(p.locked[category]) return;
+
+  p.scores[category] = value;
+  p.locked[category] = true;
+
+  // After scoring: enable Next Turn, and reset this player's dice state for the next time they are active
+  turnScored = true;
+
+  // Clear dice and holds visually (so they can't keep "old dice" while deciding next players)
+  p.dice = [0,0,0,0,0];
+  p.held = [false,false,false,false,false];
+  p.rollsLeft = 3;
+
+  renderAll();
+}
+
+function getOptionsForCategory(category){
+  const opts = [];
+  const add = (arr)=> arr.forEach(v=>opts.push(v));
+  const uniqueSorted = (arr)=>{
+    const s = Array.from(new Set(arr));
+    s.sort((a,b)=>a-b);
+    return s;
+  };
+
+  if(UPPER.includes(category)){
+    const face = UPPER.indexOf(category) + 1;
+    add([0, face, 2*face, 3*face, 4*face, 5*face]);
+    return uniqueSorted(opts);
+  }
+
+  switch(category){
+    case "One Pair":
+      add([0,2,4,6,8,10,12]);
+      return uniqueSorted(opts);
+
+    case "Two Pairs":
+      add([0,6,8,10,12,14,16,18,20,22]);
+      return uniqueSorted(opts);
+
+    case "Three of a kind":
+      add([0,3,6,9,12,15,18]);
+      return uniqueSorted(opts);
+
+    case "Four of a kind":
+      add([0,4,8,12,16,20,24]);
+      return uniqueSorted(opts);
+
+    case "Small straight":
+      add([0,15]);
+      return uniqueSorted(opts);
+
+    case "Large straight":
+      add([0,20]);
+      return uniqueSorted(opts);
+
+    case "Full House":
+      {
+        const arr = [0];
+        for(let v=7; v<=28; v++) arr.push(v);
+        return arr;
+      }
+
+    case "Chance":
+      {
+        const arr = [];
+        for(let v=0; v<=30; v++) arr.push(v);
+        return arr;
+      }
+
+    case "Yahtzee":
+      // Standard Yahtzee is 50. This matches your bonus points by default (50),
+      // and stays consistent if someone changes bonus points in setup.
+      add([0, settings.bonusPoints]);
+      return uniqueSorted(opts);
+
+    default:
+      return [0];
+  }
+}
+
+/* ---------------------------
+   Init
+----------------------------*/
+renderPlayerList();
+</script>
+</body>
+</html>
