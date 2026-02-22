@@ -251,7 +251,7 @@
   .p6{left:16px;top:50%;transform:translateY(-50%)}
   .p7{right:16px;top:50%;transform:translateY(-50%)}
 
-  /* Modal */
+  /* Modals */
   .modalBackdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.6);
     display:none;align-items:center;justify-content:center;
@@ -259,7 +259,7 @@
     z-index:50;
   }
   .modal{
-    width:min(560px, 100%);
+    width:min(620px, 100%);
     border:1px solid var(--border);
     background:linear-gradient(180deg, rgba(18,26,51,.96), rgba(10,16,34,.96));
     border-radius:16px;
@@ -287,6 +287,44 @@
   .optBtn:hover{background:rgba(255,255,255,.09)}
   .hint{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.35}
   .hide{display:none !important}
+
+  /* End game summary */
+  .leader{
+    margin-top:10px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  .leaderRow{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    background:rgba(255,255,255,.03);
+    border-top:1px solid rgba(255,255,255,.08);
+    font-weight:900;
+  }
+  .leaderRow:first-child{border-top:none}
+  .leaderRow .place{
+    width:34px;height:28px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--border);
+    background:rgba(0,0,0,.25);
+    font-size:12px;
+  }
+  .leaderLeft{display:flex;align-items:center;gap:10px}
+  .winnerTag{
+    margin-left:8px;
+    font-size:12px;
+    padding:4px 8px;
+    border-radius:999px;
+    border:1px solid rgba(34,197,94,.6);
+    background:rgba(34,197,94,.12);
+    color:var(--text);
+    font-weight:900;
+  }
+  .modalActions{
+    display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;
+  }
 </style>
 </head>
 <body>
@@ -401,7 +439,7 @@
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- SCORE SELECT MODAL -->
 <div class="modalBackdrop" id="modalBackdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modalHead">
@@ -411,6 +449,25 @@
     <div class="optGrid" id="optGrid"></div>
     <div class="hint">
       Choose the score you want to record (or 0 to cross it out).
+    </div>
+  </div>
+</div>
+
+<!-- END GAME MODAL -->
+<div class="modalBackdrop" id="endBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modalHead">
+      <h3 id="endTitle">Game Over</h3>
+      <button class="btn small" id="btnCloseEnd">Close</button>
+    </div>
+
+    <div class="mini" id="endSummary"></div>
+
+    <div class="leader" id="leaderboard"></div>
+
+    <div class="modalActions">
+      <button class="btn" id="btnCloseEnd2">Close</button>
+      <button class="btn good" id="btnNewGame2">Start New Game</button>
     </div>
   </div>
 </div>
@@ -431,7 +488,8 @@ let players = []; // {name, scores, locked, diceOn, dice, held, rollsLeft}
 let curIndex = 0;
 let turnNumber = 1;
 
-let turnScored = false; // must score before Next Turn enabled
+let turnScored = false;
+let gameOverShown = false;
 
 /* ---------------------------
    Helpers
@@ -446,18 +504,10 @@ function makeBlankLocked(){
   [...UPPER, ...LOWER].forEach(k => locked[k] = false);
   return locked;
 }
-function upperTotal(p){
-  return UPPER.reduce((s,k)=>s + (p.scores[k]||0), 0);
-}
-function bonusEarned(p){
-  return upperTotal(p) >= settings.bonusTarget ? settings.bonusPoints : 0;
-}
-function lowerTotal(p){
-  return LOWER.reduce((s,k)=>s + (p.scores[k]||0), 0);
-}
-function grandTotal(p){
-  return upperTotal(p) + bonusEarned(p) + lowerTotal(p);
-}
+function upperTotal(p){ return UPPER.reduce((s,k)=>s + (p.scores[k]||0), 0); }
+function bonusEarned(p){ return upperTotal(p) >= settings.bonusTarget ? settings.bonusPoints : 0; }
+function lowerTotal(p){ return LOWER.reduce((s,k)=>s + (p.scores[k]||0), 0); }
+function grandTotal(p){ return upperTotal(p) + bonusEarned(p) + lowerTotal(p); }
 function clampInt(n, fallback=0){
   const v = parseInt(n,10);
   return Number.isFinite(v) ? v : fallback;
@@ -466,6 +516,12 @@ function escapeHtml(str){
   return (str||"").replace(/[&<>"']/g, (m)=>({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[m]));
+}
+function allCategoriesLocked(p){
+  return [...UPPER, ...LOWER].every(cat => p.locked[cat] === true);
+}
+function isGameFinished(){
+  return players.length > 0 && players.every(p => allCategoriesLocked(p));
 }
 
 /* ---------------------------
@@ -527,8 +583,8 @@ document.getElementById("btnStart").addEventListener("click", ()=>{
   curIndex = 0;
   turnNumber = 1;
   turnScored = false;
+  gameOverShown = false;
 
-  // reset per-player dice states
   players.forEach(p=>{
     p.diceOn = false;
     p.dice = [0,0,0,0,0];
@@ -553,27 +609,30 @@ document.getElementById("btnNext").addEventListener("click", ()=>{
   renderAll();
 });
 
+function startNewGameToSetup(){
+  players = [];
+  curIndex = 0;
+  turnNumber = 1;
+  turnScored = false;
+  gameOverShown = false;
+
+  playerList.innerHTML = "";
+  bonusTarget.value = "63";
+  bonusPoints.value = "50";
+
+  gameView.classList.add("hide");
+  setupView.classList.remove("hide");
+}
+
 document.getElementById("btnNewGame").addEventListener("click", ()=>{
   if(confirm("Start a new game? This will clear scores.")){
-    players = [];
-    curIndex = 0;
-    turnNumber = 1;
-    turnScored = false;
-
-    playerList.innerHTML = "";
-    bonusTarget.value = "63";
-    bonusPoints.value = "50";
-
-    gameView.classList.add("hide");
-    setupView.classList.remove("hide");
+    startNewGameToSetup();
   }
 });
 
 document.getElementById("btnToggleDice").addEventListener("click", ()=>{
   const p = players[curIndex];
   p.diceOn = !p.diceOn;
-
-  // If turning off, clear shown dice + holds for cleanliness
   if(!p.diceOn){
     p.dice = [0,0,0,0,0];
     p.held = [false,false,false,false,false];
@@ -587,39 +646,27 @@ document.getElementById("btnRoll").addEventListener("click", ()=>{
   if(!p.diceOn) return;
   if(p.rollsLeft <= 0) return;
 
-  // Roll only non-held dice
   for(let i=0;i<5;i++){
     if(!p.held[i]){
       p.dice[i] = Math.floor(Math.random()*6)+1;
     }
   }
   p.rollsLeft--;
-
-  // Freeze holds after 3rd roll (rollsLeft now 0)
-  if(p.rollsLeft === 0){
-    // nothing else needed here; UI logic will prevent toggling
-  }
-
   renderAll();
 });
 
 document.getElementById("btnNextTurn").addEventListener("click", ()=>{
   if(!turnScored) return;
 
-  // Move to next player
   curIndex = (curIndex + 1) % players.length;
-  // Increase turn count each full round
   if(curIndex === 0) turnNumber++;
 
-  // Reset next player's dice state for their turn (if they use digital dice)
   const p = players[curIndex];
   p.dice = [0,0,0,0,0];
   p.held = [false,false,false,false,false];
   p.rollsLeft = 3;
 
-  // Reset turn state
   turnScored = false;
-
   renderAll();
 });
 
@@ -636,6 +683,8 @@ const btnNextTurn = document.getElementById("btnNextTurn");
 const btnRoll = document.getElementById("btnRoll");
 
 function renderAll(){
+  if(players.length === 0) return;
+
   const p = players[curIndex];
 
   curName.textContent = p.name;
@@ -647,13 +696,15 @@ function renderAll(){
 
   btnNextTurn.disabled = !turnScored;
 
-  // Dice controls
   btnRoll.disabled = !p.diceOn || p.rollsLeft <= 0;
   document.getElementById("diceRow").classList.toggle("hide", !p.diceOn);
   document.getElementById("btnToggleDice").textContent = p.diceOn ? "Hide Digital Dice" : "Use Digital Dice";
 
   renderDice();
   renderScoreSheet();
+
+  // If game finished, show end screen once
+  maybeShowGameOver();
 }
 
 function renderScoreSheet(){
@@ -744,7 +795,6 @@ function renderDice(){
     if(p.held[i]) die.classList.add("held");
     if(holdsFrozen) die.classList.add("frozen");
 
-    // 7 pips
     const pips = [];
     for(let k=1;k<=7;k++){
       const dot = document.createElement("div");
@@ -754,12 +804,7 @@ function renderDice(){
     }
     setPips(pips, val);
 
-    // Hold toggling rules:
-    // - cannot hold before first roll
-    // - can hold between rolls (rollsLeft 2 or 1)
-    // - holds freeze after third roll (rollsLeft 0)
     const canToggleHold = hasRolledAtLeastOnce && !holdsFrozen && val !== 0;
-
     if(canToggleHold){
       die.addEventListener("click", ()=>{
         p.held[i] = !p.held[i];
@@ -787,7 +832,7 @@ function setPips(pips, val){
 }
 
 /* ---------------------------
-   Modal scoring options
+   Score select modal
 ----------------------------*/
 const modalBackdrop = document.getElementById("modalBackdrop");
 const modalTitle = document.getElementById("modalTitle");
@@ -834,10 +879,8 @@ function commitScore(category, value){
   p.scores[category] = value;
   p.locked[category] = true;
 
-  // After scoring: enable Next Turn, and reset this player's dice state for the next time they are active
   turnScored = true;
 
-  // Clear dice and holds visually (so they can't keep "old dice" while deciding next players)
   p.dice = [0,0,0,0,0];
   p.held = [false,false,false,false,false];
   p.rollsLeft = 3;
@@ -861,53 +904,109 @@ function getOptionsForCategory(category){
   }
 
   switch(category){
-    case "One Pair":
-      add([0,2,4,6,8,10,12]);
-      return uniqueSorted(opts);
-
-    case "Two Pairs":
-      add([0,6,8,10,12,14,16,18,20,22]);
-      return uniqueSorted(opts);
-
-    case "Three of a kind":
-      add([0,3,6,9,12,15,18]);
-      return uniqueSorted(opts);
-
-    case "Four of a kind":
-      add([0,4,8,12,16,20,24]);
-      return uniqueSorted(opts);
-
-    case "Small straight":
-      add([0,15]);
-      return uniqueSorted(opts);
-
-    case "Large straight":
-      add([0,20]);
-      return uniqueSorted(opts);
-
-    case "Full House":
-      {
-        const arr = [0];
-        for(let v=7; v<=28; v++) arr.push(v);
-        return arr;
-      }
-
-    case "Chance":
-      {
-        const arr = [];
-        for(let v=0; v<=30; v++) arr.push(v);
-        return arr;
-      }
-
+    case "One Pair": add([0,2,4,6,8,10,12]); return uniqueSorted(opts);
+    case "Two Pairs": add([0,6,8,10,12,14,16,18,20,22]); return uniqueSorted(opts);
+    case "Three of a kind": add([0,3,6,9,12,15,18]); return uniqueSorted(opts);
+    case "Four of a kind": add([0,4,8,12,16,20,24]); return uniqueSorted(opts);
+    case "Small straight": add([0,15]); return uniqueSorted(opts);
+    case "Large straight": add([0,20]); return uniqueSorted(opts);
+    case "Full House":{
+      const arr = [0];
+      for(let v=7; v<=28; v++) arr.push(v);
+      return arr;
+    }
+    case "Chance":{
+      const arr = [];
+      for(let v=0; v<=30; v++) arr.push(v);
+      return arr;
+    }
     case "Yahtzee":
-      // Standard Yahtzee is 50. This matches your bonus points by default (50),
-      // and stays consistent if someone changes bonus points in setup.
-      add([0, settings.bonusPoints]);
+      add([0, settings.bonusPoints]); // default 50; follows your bonus points setting
       return uniqueSorted(opts);
-
     default:
       return [0];
   }
+}
+
+/* ---------------------------
+   End game modal
+----------------------------*/
+const endBackdrop = document.getElementById("endBackdrop");
+const endTitle = document.getElementById("endTitle");
+const endSummary = document.getElementById("endSummary");
+const leaderboard = document.getElementById("leaderboard");
+const btnCloseEnd = document.getElementById("btnCloseEnd");
+const btnCloseEnd2 = document.getElementById("btnCloseEnd2");
+const btnNewGame2 = document.getElementById("btnNewGame2");
+
+btnCloseEnd.addEventListener("click", closeEnd);
+btnCloseEnd2.addEventListener("click", closeEnd);
+endBackdrop.addEventListener("click", (e)=>{
+  if(e.target === endBackdrop) closeEnd();
+});
+btnNewGame2.addEventListener("click", ()=>{
+  closeEnd();
+  startNewGameToSetup();
+});
+
+function maybeShowGameOver(){
+  if(gameOverShown) return;
+  if(!isGameFinished()) return;
+
+  gameOverShown = true;
+
+  // Build standings
+  const standings = players.map(p=>({
+    name: p.name,
+    total: grandTotal(p),
+    upper: upperTotal(p),
+    bonus: bonusEarned(p),
+    lower: lowerTotal(p)
+  })).sort((a,b)=> b.total - a.total);
+
+  const topScore = standings[0].total;
+  const winners = standings.filter(s=> s.total === topScore).map(s=>s.name);
+
+  if(winners.length === 1){
+    endTitle.textContent = `Winner: ${winners[0]} (${topScore})`;
+    endSummary.textContent = `Final results are in. ${winners[0]} wins with ${topScore} points.`;
+  }else{
+    endTitle.textContent = `Tie! (${topScore})`;
+    endSummary.textContent = `Final results are in. Tie between: ${winners.join(", ")} — all with ${topScore} points.`;
+  }
+
+  leaderboard.innerHTML = "";
+  standings.forEach((s, i)=>{
+    const row = document.createElement("div");
+    row.className = "leaderRow";
+
+    const isWinner = s.total === topScore;
+    row.innerHTML = `
+      <div class="leaderLeft">
+        <div class="place">${i+1}</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div>${escapeHtml(s.name)}</div>
+            ${isWinner ? `<span class="winnerTag">Winner</span>` : ``}
+          </div>
+          <div class="mini">Upper ${s.upper} + Bonus ${s.bonus} + Lower ${s.lower}</div>
+        </div>
+      </div>
+      <div>${s.total}</div>
+    `;
+    leaderboard.appendChild(row);
+  });
+
+  openEnd();
+}
+
+function openEnd(){
+  endBackdrop.style.display = "flex";
+  endBackdrop.setAttribute("aria-hidden","false");
+}
+function closeEnd(){
+  endBackdrop.style.display = "none";
+  endBackdrop.setAttribute("aria-hidden","true");
 }
 
 /* ---------------------------
