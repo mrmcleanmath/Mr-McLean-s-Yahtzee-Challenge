@@ -23,7 +23,7 @@
     background: radial-gradient(1200px 700px at 20% 10%, #132152 0%, var(--bg) 55%, #070b12 100%);
     color:var(--text);
   }
-  .wrap{max-width:980px;margin:0 auto;padding:16px 14px 40px}
+  .wrap{max-width:1280px;margin:0 auto;padding:16px 14px 40px}
   .topbar{
     display:flex;align-items:center;justify-content:space-between;
     gap:12px;padding:10px 12px;border:1px solid var(--border);
@@ -47,7 +47,8 @@
   .btn:disabled{opacity:.55; cursor:not-allowed}
   .btn.small{padding:8px 10px;border-radius:10px;font-weight:700}
   .grid{margin-top:14px;display:grid;grid-template-columns:1fr;gap:14px}
-  @media (min-width: 920px){ .grid{grid-template-columns: 360px 1fr} }
+  @media (min-width: 980px){ .grid{grid-template-columns: 360px 1fr} }
+
   .card{
     border:1px solid var(--border);
     background:rgba(255,255,255,.05);
@@ -87,7 +88,6 @@
   .pill .x:hover{background:rgba(255,255,255,.08)}
   .divider{height:1px;background:var(--border);margin:12px 0}
 
-  /* SCOREBOARD (new) */
   .scoreboard{
     margin-top:12px;
     border:1px solid var(--border);
@@ -155,7 +155,6 @@
     font-weight:900;
   }
 
-  /* Game area */
   .gameHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
   .playerNav{display:flex;align-items:center;gap:10px}
   .navBtn{
@@ -178,11 +177,24 @@
   }
   .chip.good{border-color:rgba(34,197,94,.6); background:rgba(34,197,94,.12)}
 
-  .scoreSheet{
+  .scoreSheetWrap{
     margin-top:12px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+    align-items:start;
+  }
+  @media (min-width:980px){
+    .scoreSheetWrap{
+      grid-template-columns:minmax(320px, 1fr) minmax(320px, 1fr);
+    }
+  }
+
+  .scoreSheet{
     border:1px solid var(--border);
     border-radius:14px;
     overflow:hidden;
+    background:rgba(255,255,255,.02);
   }
   .ssRow{
     display:flex;align-items:center;justify-content:space-between;
@@ -216,6 +228,8 @@
     text-transform:uppercase;
     letter-spacing:.9px;
   }
+  .sectionTitle:first-child{border-top:none}
+
   .bonusBox{
     padding:10px 12px;
     background:rgba(77,163,255,.08);
@@ -224,12 +238,15 @@
   }
   .bonusLine{display:flex;justify-content:space-between;gap:10px;font-weight:800}
   .bonusLine span{color:var(--muted);font-weight:800}
+
   .totalsBox{
     padding:12px;background:rgba(0,0,0,.25);
-    border-top:1px solid rgba(255,255,255,.10);
+    border:1px solid var(--border);
+    border-radius:14px;
     display:grid;grid-template-columns:1fr;gap:8px;
   }
-  @media (min-width:520px){ .totalsBox{grid-template-columns: 1fr 1fr} }
+  @media (min-width:640px){ .totalsBox{grid-template-columns:1fr 1fr} }
+
   .totalItem{
     border:1px solid var(--border);
     border-radius:12px;
@@ -290,7 +307,13 @@
   .p6{left:16px;top:50%;transform:translateY(-50%)}
   .p7{right:16px;top:50%;transform:translateY(-50%)}
 
-  /* Modals */
+  .turnActions{
+    margin-top:12px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
   .modalBackdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.6);
     display:none;align-items:center;justify-content:center;
@@ -327,7 +350,6 @@
   .hint{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.35}
   .hide{display:none !important}
 
-  /* End game summary */
   .leader{
     margin-top:10px;
     border:1px solid var(--border);
@@ -366,7 +388,7 @@
   }
 
   .editHint{
-    margin-top:6px;
+    margin-top:12px;
     padding:8px 10px;
     border-radius:12px;
     border:1px solid rgba(77,163,255,.35);
@@ -386,7 +408,6 @@
     </div>
   </div>
 
-  <!-- SCOREBOARD -->
   <div class="scoreboard hide" id="scoreboardWrap">
     <div class="sbHead">
       <div>Scoreboard</div>
@@ -395,7 +416,6 @@
     <div class="sbGrid" id="sbGrid"></div>
   </div>
 
-  <!-- SETUP -->
   <div class="grid" id="setupView">
     <div class="card">
       <h2>Game setup</h2>
@@ -447,7 +467,6 @@
     </div>
   </div>
 
-  <!-- GAME -->
   <div class="grid hide" id="gameView">
     <div class="card" id="leftPanel">
       <div class="gameHead">
@@ -479,11 +498,14 @@
         </div>
       </div>
 
+      <div class="turnActions">
+        <button class="btn good" id="btnEndTurn">End Turn / Next Player</button>
+      </div>
+
       <div class="divider"></div>
 
-      <!-- Next Turn removed because handover is automatic -->
       <div class="mini">
-        After you enter a score, the app automatically moves to the next player.
+        Scores stay on the current player until you click <b>End Turn / Next Player</b>.
       </div>
     </div>
 
@@ -493,16 +515,20 @@
         <span class="mini">Click a category to enter a score. Click again to edit.</span>
       </h2>
 
-      <div class="scoreSheet" id="scoreSheet"></div>
+      <div class="scoreSheetWrap">
+        <div class="scoreSheet" id="upperSheet"></div>
+        <div class="scoreSheet" id="lowerSheet"></div>
+      </div>
+
+      <div class="totalsBox" id="totalsBox" style="margin-top:14px;"></div>
 
       <div class="editHint">
-        Editing is for correcting mistakes (e.g., misclick). Choosing <b>0</b> is still the normal way to cross out a category.
+        Editing is for correcting mistakes (e.g. misclick). Choosing <b>0</b> is still the normal way to cross out a category.
       </div>
     </div>
   </div>
 </div>
 
-<!-- SCORE SELECT MODAL -->
 <div class="modalBackdrop" id="modalBackdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modalHead">
@@ -517,7 +543,6 @@
   </div>
 </div>
 
-<!-- END GAME MODAL -->
 <div class="modalBackdrop" id="endBackdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modalHead">
@@ -537,9 +562,6 @@
 </div>
 
 <script>
-/* ---------------------------
-   Data model
-----------------------------*/
 const UPPER = ["Ones","Twos","Threes","Fours","Fives","Sixes"];
 const LOWER = [
   "One Pair","Two Pairs","Three of a kind","Four of a kind",
@@ -547,16 +569,11 @@ const LOWER = [
 ];
 
 let settings = { bonusTarget:63, bonusPoints:50 };
-
-let players = []; // {name, scores, locked, diceOn, dice, held, rollsLeft}
+let players = [];
 let curIndex = 0;
 let turnNumber = 1;
-
 let gameOverShown = false;
 
-/* ---------------------------
-   Helpers
-----------------------------*/
 function makeBlankScores(){
   const scores = {};
   [...UPPER, ...LOWER].forEach(k => scores[k] = 0);
@@ -587,9 +604,6 @@ function isGameFinished(){
   return players.length > 0 && players.every(p => allCategoriesLocked(p));
 }
 
-/* ---------------------------
-   Setup UI
-----------------------------*/
 const setupView = document.getElementById("setupView");
 const gameView  = document.getElementById("gameView");
 const scoreboardWrap = document.getElementById("scoreboardWrap");
@@ -663,10 +677,6 @@ document.getElementById("btnStart").addEventListener("click", ()=>{
   renderAll();
 });
 
-/* ---------------------------
-   Game UI: navigation
-   (kept as an inspection tool)
-----------------------------*/
 document.getElementById("btnPrev").addEventListener("click", ()=>{
   curIndex = (curIndex - 1 + players.length) % players.length;
   renderAll();
@@ -722,9 +732,6 @@ document.getElementById("btnRoll").addEventListener("click", ()=>{
   renderAll();
 });
 
-/* ---------------------------
-   AUTO HANDOVER after scoring
-----------------------------*/
 function advanceToNextPlayer(){
   if(players.length === 0) return;
   curIndex = (curIndex + 1) % players.length;
@@ -736,10 +743,21 @@ function advanceToNextPlayer(){
   p.rollsLeft = 3;
 }
 
-/* ---------------------------
-   Score sheet render
-----------------------------*/
-const scoreSheet = document.getElementById("scoreSheet");
+document.getElementById("btnEndTurn").addEventListener("click", ()=>{
+  if(players.length === 0) return;
+
+  const current = players[curIndex];
+  current.dice = [0,0,0,0,0];
+  current.held = [false,false,false,false,false];
+  current.rollsLeft = 3;
+
+  advanceToNextPlayer();
+  renderAll();
+});
+
+const upperSheet = document.getElementById("upperSheet");
+const lowerSheet = document.getElementById("lowerSheet");
+const totalsBox = document.getElementById("totalsBox");
 const curName = document.getElementById("curName");
 const curTurn = document.getElementById("curTurn");
 const chipBonus = document.getElementById("chipBonus");
@@ -797,10 +815,12 @@ function renderScoreboard(){
 
 function renderScoreSheet(){
   const p = players[curIndex];
-  scoreSheet.innerHTML = "";
+  upperSheet.innerHTML = "";
+  lowerSheet.innerHTML = "";
+  totalsBox.innerHTML = "";
 
-  scoreSheet.appendChild(sectionTitle("Upper section"));
-  UPPER.forEach((cat, i)=> scoreSheet.appendChild(scoreRow(cat, i+1, p)));
+  upperSheet.appendChild(sectionTitle("Upper section"));
+  UPPER.forEach((cat, i)=> upperSheet.appendChild(scoreRow(cat, i+1, p)));
 
   const b = document.createElement("div");
   b.className = "bonusBox";
@@ -811,18 +831,15 @@ function renderScoreSheet(){
     <div class="bonusLine"><span>Bonus progress</span><b>${uTot} / ${settings.bonusTarget}</b></div>
     <div class="bonusLine"><span>Bonus</span><b>${bEarn}</b></div>
   `;
-  scoreSheet.appendChild(b);
+  upperSheet.appendChild(b);
 
-  scoreSheet.appendChild(sectionTitle("Lower section"));
-  LOWER.forEach((cat, i)=> scoreSheet.appendChild(scoreRow(cat, i+1, p)));
+  lowerSheet.appendChild(sectionTitle("Lower section"));
+  LOWER.forEach((cat, i)=> lowerSheet.appendChild(scoreRow(cat, i+1, p)));
 
-  const totals = document.createElement("div");
-  totals.className = "totalsBox";
-  totals.appendChild(totalItem("Upper total", upperTotal(p)));
-  totals.appendChild(totalItem("Bonus", bonusEarned(p)));
-  totals.appendChild(totalItem("Lower total", lowerTotal(p)));
-  totals.appendChild(totalItem("Total", grandTotal(p)));
-  scoreSheet.appendChild(totals);
+  totalsBox.appendChild(totalItem("Upper total", upperTotal(p)));
+  totalsBox.appendChild(totalItem("Bonus", bonusEarned(p)));
+  totalsBox.appendChild(totalItem("Lower total", lowerTotal(p)));
+  totalsBox.appendChild(totalItem("Total", grandTotal(p)));
 }
 
 function sectionTitle(text){
@@ -859,9 +876,6 @@ function scoreRow(category, badgeNum, p){
   return row;
 }
 
-/* ---------------------------
-   Dice with pips + holds
-----------------------------*/
 function renderDice(){
   const p = players[curIndex];
   const diceRow = document.getElementById("diceRow");
@@ -911,9 +925,6 @@ function setPips(pips, val){
   }
 }
 
-/* ---------------------------
-   Score select / Edit modal
-----------------------------*/
 const modalBackdrop = document.getElementById("modalBackdrop");
 const modalTitle = document.getElementById("modalTitle");
 const modalSub = document.getElementById("modalSub");
@@ -985,20 +996,6 @@ function commitScoreFromModal(newValue){
   p.scores[cat] = newValue;
   p.locked[cat] = true;
 
-  // If this was a NEW score (not edit), auto-advance turn
-  if(!wasLocked){
-    // Reset dice for current player before moving on
-    p.dice = [0,0,0,0,0];
-    p.held = [false,false,false,false,false];
-    p.rollsLeft = 3;
-
-    closeModal();
-    advanceToNextPlayer();
-    renderAll();
-    return;
-  }
-
-  // Editing does not change whose turn it is
   closeModal();
   renderAll();
 }
@@ -1049,9 +1046,6 @@ function getOptionsForCategory(category){
   }
 }
 
-/* ---------------------------
-   End game modal
-----------------------------*/
 const endBackdrop = document.getElementById("endBackdrop");
 const endTitle = document.getElementById("endTitle");
 const endSummary = document.getElementById("endSummary");
@@ -1129,9 +1123,6 @@ function closeEnd(){
   endBackdrop.setAttribute("aria-hidden","true");
 }
 
-/* ---------------------------
-   Init
-----------------------------*/
 renderPlayerList();
 </script>
 </body>
