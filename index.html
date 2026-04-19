@@ -44,6 +44,8 @@
   .btn.primary{background:linear-gradient(180deg, rgba(77,163,255,.9), rgba(77,163,255,.65)); border-color:rgba(77,163,255,.8); color:#061021}
   .btn.primary:hover{filter:brightness(1.05)}
   .btn.good{background:linear-gradient(180deg, rgba(34,197,94,.9), rgba(34,197,94,.65)); border-color:rgba(34,197,94,.9); color:#061021}
+  .btn.warn{background:linear-gradient(180deg, rgba(251,191,36,.95), rgba(217,119,6,.78)); border-color:rgba(251,191,36,.9); color:#061021}
+  .btn.bad{background:linear-gradient(180deg, rgba(239,68,68,.95), rgba(185,28,28,.78)); border-color:rgba(239,68,68,.9); color:#fff}
   .btn:disabled{opacity:.55; cursor:not-allowed}
   .btn.small{padding:8px 10px;border-radius:10px;font-weight:700}
   .grid{margin-top:14px;display:grid;grid-template-columns:1fr;gap:14px}
@@ -165,6 +167,7 @@
     cursor:pointer;font-size:18px;font-weight:900
   }
   .navBtn:hover{background:rgba(255,255,255,.09)}
+  .navBtn:disabled{opacity:.45;cursor:not-allowed}
   .who{display:flex;flex-direction:column;gap:2px}
   .who .name{font-size:18px;font-weight:900}
   .who .turn{font-size:12px;color:var(--muted)}
@@ -176,6 +179,8 @@
     font-size:12px;font-weight:800;
   }
   .chip.good{border-color:rgba(34,197,94,.6); background:rgba(34,197,94,.12)}
+  .chip.warn{border-color:rgba(251,191,36,.6); background:rgba(251,191,36,.12)}
+  .chip.bad{border-color:rgba(239,68,68,.6); background:rgba(239,68,68,.12)}
 
   .scoreSheetWrap{
     margin-top:12px;
@@ -208,6 +213,20 @@
   .ssRow:first-child{border-top:none}
   .ssRow:hover{background:rgba(255,255,255,.06)}
   .ssRow.locked{background:rgba(255,255,255,.02);opacity:.94}
+  .ssRow.crossed{
+    background:rgba(239,68,68,.08);
+  }
+  .ssRow.turnLocked{
+    cursor:not-allowed;
+    opacity:.75;
+  }
+  .ssRow.turnLocked:hover{
+    background:rgba(255,255,255,.03);
+  }
+  .ssRow.editableMistake{
+    border-left:4px solid rgba(251,191,36,.95);
+    background:rgba(251,191,36,.08);
+  }
   .ssLeft{display:flex;align-items:center;gap:10px}
   .badge{
     width:26px;height:26px;border-radius:9px;
@@ -218,6 +237,11 @@
   }
   .ssName{font-weight:800}
   .ssVal{font-weight:900}
+  .crossMark{
+    color:#ffb4b4;
+    font-weight:900;
+    letter-spacing:.8px;
+  }
   .sectionTitle{
     padding:10px 12px;
     font-size:12px;
@@ -397,6 +421,17 @@
     font-size:12px;
     line-height:1.35;
   }
+
+  .statusBox{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid rgba(251,191,36,.35);
+    background:rgba(251,191,36,.08);
+    color:var(--text);
+    font-size:13px;
+    line-height:1.35;
+  }
 </style>
 </head>
 <body>
@@ -457,12 +492,13 @@
     <div class="card">
       <h2>How scoring works in this app</h2>
       <div class="mini">
-        This app does <b>not</b> tell players what they rolled. It is a score sheet that keeps totals and locks categories.
+        Click a category to enter a score.
         <br><br>
-        When you click a category, a popup shows the possible score values for that category (including <b>0</b> if you want to cross it out).
-        The player picks what they claim.
+        If a category must be eliminated, use <b>Cross Out Category</b>. Crossed-out categories display as <b>X</b>.
         <br><br>
-        Digital dice are optional and follow real Yahtzee flow: 3 rolls max, click dice to hold between rolls.
+        After a score is submitted, that player's scorecard locks for the rest of the turn. The next step is to click <b>End Turn / Next Player</b>.
+        <br><br>
+        If the player made a mistake, use <b>Edit Mistake</b> to correct that one entry before moving on.
       </div>
     </div>
   </div>
@@ -481,6 +517,7 @@
         <div class="chips">
           <div class="chip" id="chipBonus">Bonus: 0/63</div>
           <div class="chip" id="chipDice">Digital Dice: Off</div>
+          <div class="chip" id="chipCardState">Card Open</div>
         </div>
       </div>
 
@@ -499,20 +536,25 @@
       </div>
 
       <div class="turnActions">
+        <button class="btn warn" id="btnEditMistake">Edit Mistake</button>
         <button class="btn good" id="btnEndTurn">End Turn / Next Player</button>
+      </div>
+
+      <div class="statusBox" id="turnStatusBox">
+        This player's scorecard is open. Choose one category to score or cross out.
       </div>
 
       <div class="divider"></div>
 
       <div class="mini">
-        Scores stay on the current player until you click <b>End Turn / Next Player</b>.
+        After a player submits a category, their card locks. The next player should not roll until <b>End Turn / Next Player</b> is clicked.
       </div>
     </div>
 
     <div class="card">
       <h2 style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
         <span>Score sheet</span>
-        <span class="mini">Click a category to enter a score. Click again to edit.</span>
+        <span class="mini">Crossed-out categories show X. Edit is only allowed through the Edit Mistake button.</span>
       </h2>
 
       <div class="scoreSheetWrap">
@@ -523,7 +565,7 @@
       <div class="totalsBox" id="totalsBox" style="margin-top:14px;"></div>
 
       <div class="editHint">
-        Editing is for correcting mistakes (e.g. misclick). Choosing <b>0</b> is still the normal way to cross out a category.
+        <b>Scored</b> means the category received points. <b>X</b> means the category was crossed out. <b>Undo entry</b> clears the category and returns it to blank.
       </div>
     </div>
   </div>
@@ -538,8 +580,9 @@
     <div class="mini" id="modalSub" style="margin-bottom:10px"></div>
     <div class="optGrid" id="optGrid"></div>
     <div class="hint" id="modalHint">
-      Choose the score you want to record (or 0 to cross it out).
+      Choose the score you want to record.
     </div>
+    <div class="modalActions" id="extraModalActions"></div>
   </div>
 </div>
 
@@ -567,6 +610,7 @@ const LOWER = [
   "One Pair","Two Pairs","Three of a kind","Four of a kind",
   "Small straight","Large straight","Full House","Chance","Yahtzee"
 ];
+const ALL_CATEGORIES = [...UPPER, ...LOWER];
 
 let settings = { bonusTarget:63, bonusPoints:50 };
 let players = [];
@@ -576,17 +620,21 @@ let gameOverShown = false;
 
 function makeBlankScores(){
   const scores = {};
-  [...UPPER, ...LOWER].forEach(k => scores[k] = 0);
+  ALL_CATEGORIES.forEach(k => scores[k] = null);
   return scores;
 }
-function makeBlankLocked(){
-  const locked = {};
-  [...UPPER, ...LOWER].forEach(k => locked[k] = false);
-  return locked;
+function makeBlankStatus(){
+  const status = {};
+  ALL_CATEGORIES.forEach(k => status[k] = "empty");
+  return status;
 }
-function upperTotal(p){ return UPPER.reduce((s,k)=>s + (p.scores[k]||0), 0); }
+function upperTotal(p){
+  return UPPER.reduce((s,k)=> s + (p.status[k] === "scored" ? (p.scores[k] || 0) : 0), 0);
+}
 function bonusEarned(p){ return upperTotal(p) >= settings.bonusTarget ? settings.bonusPoints : 0; }
-function lowerTotal(p){ return LOWER.reduce((s,k)=>s + (p.scores[k]||0), 0); }
+function lowerTotal(p){
+  return LOWER.reduce((s,k)=> s + (p.status[k] === "scored" ? (p.scores[k] || 0) : 0), 0);
+}
 function grandTotal(p){ return upperTotal(p) + bonusEarned(p) + lowerTotal(p); }
 function clampInt(n, fallback=0){
   const v = parseInt(n,10);
@@ -597,11 +645,23 @@ function escapeHtml(str){
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[m]));
 }
-function allCategoriesLocked(p){
-  return [...UPPER, ...LOWER].every(cat => p.locked[cat] === true);
+function categoryUsed(p, cat){
+  return p.status[cat] === "scored" || p.status[cat] === "crossed";
+}
+function allCategoriesUsed(p){
+  return ALL_CATEGORIES.every(cat => categoryUsed(p, cat));
 }
 function isGameFinished(){
-  return players.length > 0 && players.every(p => allCategoriesLocked(p));
+  return players.length > 0 && players.every(p => allCategoriesUsed(p));
+}
+function currentPlayer(){
+  return players[curIndex];
+}
+function canEditCategoryThisTurn(p, category){
+  return !!p.editMistakeMode && p.lastTurnCategory === category;
+}
+function isScorecardLockedForTurn(p){
+  return !!p.turnCommitted && !p.editMistakeMode;
 }
 
 const setupView = document.getElementById("setupView");
@@ -621,11 +681,14 @@ document.getElementById("btnAddPlayer").addEventListener("click", ()=>{
   players.push({
     name,
     scores: makeBlankScores(),
-    locked: makeBlankLocked(),
+    status: makeBlankStatus(),
     diceOn: false,
     dice: [0,0,0,0,0],
     held: [false,false,false,false,false],
-    rollsLeft: 3
+    rollsLeft: 3,
+    turnCommitted: false,
+    editMistakeMode: false,
+    lastTurnCategory: null
   });
   playerName.value = "";
   renderPlayerList();
@@ -669,6 +732,9 @@ document.getElementById("btnStart").addEventListener("click", ()=>{
     p.dice = [0,0,0,0,0];
     p.held = [false,false,false,false,false];
     p.rollsLeft = 3;
+    p.turnCommitted = false;
+    p.editMistakeMode = false;
+    p.lastTurnCategory = null;
   });
 
   setupView.classList.add("hide");
@@ -678,10 +744,20 @@ document.getElementById("btnStart").addEventListener("click", ()=>{
 });
 
 document.getElementById("btnPrev").addEventListener("click", ()=>{
+  const p = currentPlayer();
+  if(p && p.turnCommitted && !p.editMistakeMode){
+    alert("This turn is already submitted. Click End Turn / Next Player.");
+    return;
+  }
   curIndex = (curIndex - 1 + players.length) % players.length;
   renderAll();
 });
 document.getElementById("btnNext").addEventListener("click", ()=>{
+  const p = currentPlayer();
+  if(p && p.turnCommitted && !p.editMistakeMode){
+    alert("This turn is already submitted. Click End Turn / Next Player.");
+    return;
+  }
   curIndex = (curIndex + 1) % players.length;
   renderAll();
 });
@@ -708,7 +784,12 @@ document.getElementById("btnNewGame").addEventListener("click", ()=>{
 });
 
 document.getElementById("btnToggleDice").addEventListener("click", ()=>{
-  const p = players[curIndex];
+  const p = currentPlayer();
+  if(!p) return;
+  if(p.turnCommitted && !p.editMistakeMode){
+    alert("This turn has already been submitted. Click End Turn / Next Player.");
+    return;
+  }
   p.diceOn = !p.diceOn;
   if(!p.diceOn){
     p.dice = [0,0,0,0,0];
@@ -719,7 +800,12 @@ document.getElementById("btnToggleDice").addEventListener("click", ()=>{
 });
 
 document.getElementById("btnRoll").addEventListener("click", ()=>{
-  const p = players[curIndex];
+  const p = currentPlayer();
+  if(!p) return;
+  if(p.turnCommitted && !p.editMistakeMode){
+    alert("This turn has already been submitted. Click End Turn / Next Player.");
+    return;
+  }
   if(!p.diceOn) return;
   if(p.rollsLeft <= 0) return;
 
@@ -732,26 +818,56 @@ document.getElementById("btnRoll").addEventListener("click", ()=>{
   renderAll();
 });
 
+function resetTurnStateForPlayer(p){
+  p.dice = [0,0,0,0,0];
+  p.held = [false,false,false,false,false];
+  p.rollsLeft = 3;
+  p.turnCommitted = false;
+  p.editMistakeMode = false;
+  p.lastTurnCategory = null;
+}
+
 function advanceToNextPlayer(){
   if(players.length === 0) return;
   curIndex = (curIndex + 1) % players.length;
   if(curIndex === 0) turnNumber++;
 
   const p = players[curIndex];
-  p.dice = [0,0,0,0,0];
-  p.held = [false,false,false,false,false];
-  p.rollsLeft = 3;
+  resetTurnStateForPlayer(p);
 }
 
 document.getElementById("btnEndTurn").addEventListener("click", ()=>{
   if(players.length === 0) return;
 
-  const current = players[curIndex];
+  const current = currentPlayer();
+  if(!current.turnCommitted){
+    const proceed = confirm("No category has been submitted for this turn. Move to the next player anyway?");
+    if(!proceed) return;
+  }
+
   current.dice = [0,0,0,0,0];
   current.held = [false,false,false,false,false];
   current.rollsLeft = 3;
+  current.editMistakeMode = false;
 
   advanceToNextPlayer();
+  renderAll();
+});
+
+document.getElementById("btnEditMistake").addEventListener("click", ()=>{
+  const p = currentPlayer();
+  if(!p) return;
+
+  if(!p.turnCommitted){
+    alert("There is nothing to edit yet. Submit a score or cross out a category first.");
+    return;
+  }
+  if(!p.lastTurnCategory){
+    alert("No entry from this turn was found.");
+    return;
+  }
+
+  p.editMistakeMode = !p.editMistakeMode;
   renderAll();
 });
 
@@ -763,12 +879,17 @@ const curTurn = document.getElementById("curTurn");
 const chipBonus = document.getElementById("chipBonus");
 const chipDice = document.getElementById("chipDice");
 const chipRolls = document.getElementById("chipRolls");
+const chipCardState = document.getElementById("chipCardState");
 const btnRoll = document.getElementById("btnRoll");
+const btnEditMistake = document.getElementById("btnEditMistake");
+const btnPrev = document.getElementById("btnPrev");
+const btnNext = document.getElementById("btnNext");
+const turnStatusBox = document.getElementById("turnStatusBox");
 
 function renderAll(){
   if(players.length === 0) return;
 
-  const p = players[curIndex];
+  const p = currentPlayer();
 
   curName.textContent = p.name;
   curTurn.textContent = `Turn ${turnNumber}`;
@@ -777,9 +898,30 @@ function renderAll(){
   chipDice.className = "chip " + (p.diceOn ? "good" : "");
   chipRolls.textContent = `Rolls left: ${p.diceOn ? p.rollsLeft : "-"}`;
 
-  btnRoll.disabled = !p.diceOn || p.rollsLeft <= 0;
+  if(p.turnCommitted){
+    if(p.editMistakeMode){
+      chipCardState.textContent = "Edit Mistake On";
+      chipCardState.className = "chip warn";
+      turnStatusBox.innerHTML = `Only <b>${escapeHtml(p.lastTurnCategory || "")}</b> can be changed right now. When finished, either turn off Edit Mistake or click End Turn / Next Player.`;
+    }else{
+      chipCardState.textContent = "Card Locked";
+      chipCardState.className = "chip bad";
+      turnStatusBox.innerHTML = `This player's turn has already been submitted. The scorecard is locked. The normal next step is to click <b>End Turn / Next Player</b>.`;
+    }
+  }else{
+    chipCardState.textContent = "Card Open";
+    chipCardState.className = "chip good";
+    turnStatusBox.textContent = "This player's scorecard is open. Choose one category to score or cross out.";
+  }
+
+  btnRoll.disabled = !p.diceOn || p.rollsLeft <= 0 || (p.turnCommitted && !p.editMistakeMode);
   document.getElementById("diceRow").classList.toggle("hide", !p.diceOn);
   document.getElementById("btnToggleDice").textContent = p.diceOn ? "Hide Digital Dice" : "Use Digital Dice";
+
+  btnEditMistake.textContent = p.editMistakeMode ? "Finish Editing" : "Edit Mistake";
+  btnEditMistake.disabled = !p.turnCommitted;
+  btnPrev.disabled = p.turnCommitted && !p.editMistakeMode;
+  btnNext.disabled = p.turnCommitted && !p.editMistakeMode;
 
   sbTurnInfo.textContent = `Turn ${turnNumber} • Current: ${p.name}`;
   renderScoreboard();
@@ -814,7 +956,7 @@ function renderScoreboard(){
 }
 
 function renderScoreSheet(){
-  const p = players[curIndex];
+  const p = currentPlayer();
   upperSheet.innerHTML = "";
   lowerSheet.innerHTML = "";
   totalsBox.innerHTML = "";
@@ -857,7 +999,11 @@ function totalItem(label, val){
 function scoreRow(category, badgeNum, p){
   const row = document.createElement("div");
   row.className = "ssRow";
-  if(p.locked[category]) row.classList.add("locked");
+
+  if(categoryUsed(p, category)) row.classList.add("locked");
+  if(p.status[category] === "crossed") row.classList.add("crossed");
+  if(isScorecardLockedForTurn(p)) row.classList.add("turnLocked");
+  if(canEditCategoryThisTurn(p, category)) row.classList.add("editableMistake");
 
   const left = document.createElement("div");
   left.className = "ssLeft";
@@ -865,25 +1011,55 @@ function scoreRow(category, badgeNum, p){
     <div class="badge">${badgeNum}</div>
     <div class="ssName">${category}</div>
   `;
+
   const right = document.createElement("div");
   right.className = "ssVal";
-  right.textContent = p.locked[category] ? p.scores[category] : "";
+
+  if(p.status[category] === "scored"){
+    right.textContent = p.scores[category];
+  }else if(p.status[category] === "crossed"){
+    right.innerHTML = `<span class="crossMark">X</span>`;
+  }else{
+    right.textContent = "";
+  }
 
   row.appendChild(left);
   row.appendChild(right);
 
-  row.addEventListener("click", ()=> openScoreModal(category));
+  row.addEventListener("click", ()=> handleCategoryClick(category));
   return row;
 }
 
+function handleCategoryClick(category){
+  const p = currentPlayer();
+  if(!p) return;
+
+  if(p.turnCommitted && !p.editMistakeMode){
+    alert("This turn is locked. Click Edit Mistake if you need to correct the entry, or click End Turn / Next Player.");
+    return;
+  }
+
+  if(p.editMistakeMode && p.lastTurnCategory !== category){
+    alert("In Edit Mistake mode, only the category entered this turn can be changed.");
+    return;
+  }
+
+  if(categoryUsed(p, category) && !canEditCategoryThisTurn(p, category)){
+    alert("That category has already been used.");
+    return;
+  }
+
+  openScoreModal(category);
+}
+
 function renderDice(){
-  const p = players[curIndex];
+  const p = currentPlayer();
   const diceRow = document.getElementById("diceRow");
   diceRow.innerHTML = "";
   if(!p.diceOn) return;
 
   const hasRolledAtLeastOnce = (p.rollsLeft < 3);
-  const holdsFrozen = (p.rollsLeft === 0);
+  const holdsFrozen = (p.rollsLeft === 0) || (p.turnCommitted && !p.editMistakeMode);
 
   for(let i=0;i<5;i++){
     const val = p.dice[i];
@@ -930,6 +1106,7 @@ const modalTitle = document.getElementById("modalTitle");
 const modalSub = document.getElementById("modalSub");
 const optGrid = document.getElementById("optGrid");
 const modalHint = document.getElementById("modalHint");
+const extraModalActions = document.getElementById("extraModalActions");
 const btnCloseModal = document.getElementById("btnCloseModal");
 
 btnCloseModal.addEventListener("click", closeModal);
@@ -940,23 +1117,32 @@ modalBackdrop.addEventListener("click", (e)=>{
 let modalCategory = null;
 
 function openScoreModal(category){
-  const p = players[curIndex];
+  const p = currentPlayer();
   if(!p) return;
 
   modalCategory = category;
-  const isEdit = !!p.locked[category];
-  const oldVal = p.scores[category] || 0;
+  const used = categoryUsed(p, category);
+  const isEdit = canEditCategoryThisTurn(p, category);
+  const status = p.status[category];
+  const oldVal = p.scores[category];
 
   optGrid.innerHTML = "";
+  extraModalActions.innerHTML = "";
 
   if(isEdit){
-    modalTitle.textContent = `Edit score: ${category}`;
-    modalSub.textContent = `Current value: ${oldVal}`;
-    modalHint.textContent = `Editing changes a previously entered score. (0 is still the normal way to cross out a category.)`;
+    modalTitle.textContent = `Edit entry: ${category}`;
+    if(status === "crossed"){
+      modalSub.textContent = `Current entry: Crossed out`;
+    }else if(status === "scored"){
+      modalSub.textContent = `Current entry: ${oldVal}`;
+    }else{
+      modalSub.textContent = `Current entry: Blank`;
+    }
+    modalHint.textContent = `You are correcting the entry from this turn. You can change it, cross it out, or undo it back to blank.`;
   }else{
     modalTitle.textContent = `Select score for: ${category}`;
     modalSub.textContent = "";
-    modalHint.textContent = `Choose the score you want to record (or 0 to cross it out).`;
+    modalHint.textContent = `Choose a score, or use Cross Out Category if this category must be eliminated.`;
   }
 
   const opts = getOptionsForCategory(category);
@@ -965,36 +1151,75 @@ function openScoreModal(category){
     b.className = "optBtn";
     b.textContent = v;
 
-    if(isEdit && v === oldVal){
+    if(status === "scored" && oldVal === v){
       b.style.borderColor = "rgba(34,197,94,.8)";
       b.style.background = "rgba(34,197,94,.12)";
     }
 
     b.addEventListener("click", ()=>{
-      commitScoreFromModal(v);
+      commitCategory(category, "scored", v);
     });
     optGrid.appendChild(b);
   });
+
+  const btnCrossOut = document.createElement("button");
+  btnCrossOut.className = "btn bad";
+  btnCrossOut.textContent = "Cross Out Category";
+  btnCrossOut.addEventListener("click", ()=>{
+    commitCategory(category, "crossed", null);
+  });
+  extraModalActions.appendChild(btnCrossOut);
+
+  if(isEdit){
+    const btnUndo = document.createElement("button");
+    btnUndo.className = "btn";
+    btnUndo.textContent = "Undo Entry";
+    btnUndo.addEventListener("click", ()=>{
+      commitCategory(category, "empty", null);
+    });
+    extraModalActions.appendChild(btnUndo);
+  }
 
   modalBackdrop.style.display = "flex";
   modalBackdrop.setAttribute("aria-hidden","false");
 }
 
-function commitScoreFromModal(newValue){
-  const p = players[curIndex];
-  const cat = modalCategory;
-  if(!p || !cat) return;
+function commitCategory(category, newStatus, newValue){
+  const p = currentPlayer();
+  if(!p || !category) return;
 
-  const wasLocked = !!p.locked[cat];
-  const oldVal = p.scores[cat] || 0;
+  const oldStatus = p.status[category];
+  const oldValue = p.scores[category];
+  const isEdit = canEditCategoryThisTurn(p, category);
 
-  if(wasLocked && newValue !== oldVal){
-    const ok = confirm(`Change "${cat}" from ${oldVal} to ${newValue}?`);
-    if(!ok) return;
+  if(isEdit){
+    let labelOld = oldStatus === "crossed" ? "X" : (oldStatus === "scored" ? oldValue : "blank");
+    let labelNew = newStatus === "crossed" ? "X" : (newStatus === "scored" ? newValue : "blank");
+    if(labelOld !== labelNew){
+      const ok = confirm(`Change "${category}" from ${labelOld} to ${labelNew}?`);
+      if(!ok) return;
+    }
   }
 
-  p.scores[cat] = newValue;
-  p.locked[cat] = true;
+  if(newStatus === "empty"){
+    p.status[category] = "empty";
+    p.scores[category] = null;
+    p.turnCommitted = false;
+    p.editMistakeMode = false;
+    p.lastTurnCategory = null;
+  }else if(newStatus === "crossed"){
+    p.status[category] = "crossed";
+    p.scores[category] = null;
+    p.turnCommitted = true;
+    p.editMistakeMode = false;
+    p.lastTurnCategory = category;
+  }else if(newStatus === "scored"){
+    p.status[category] = "scored";
+    p.scores[category] = newValue;
+    p.turnCommitted = true;
+    p.editMistakeMode = false;
+    p.lastTurnCategory = category;
+  }
 
   closeModal();
   renderAll();
@@ -1017,32 +1242,32 @@ function getOptionsForCategory(category){
 
   if(UPPER.includes(category)){
     const face = UPPER.indexOf(category) + 1;
-    add([0, face, 2*face, 3*face, 4*face, 5*face]);
+    add([face, 2*face, 3*face, 4*face, 5*face]);
     return uniqueSorted(opts);
   }
 
   switch(category){
-    case "One Pair": add([0,2,4,6,8,10,12]); return uniqueSorted(opts);
-    case "Two Pairs": add([0,6,8,10,12,14,16,18,20,22]); return uniqueSorted(opts);
-    case "Three of a kind": add([0,3,6,9,12,15,18]); return uniqueSorted(opts);
-    case "Four of a kind": add([0,4,8,12,16,20,24]); return uniqueSorted(opts);
-    case "Small straight": add([0,15]); return uniqueSorted(opts);
-    case "Large straight": add([0,20]); return uniqueSorted(opts);
+    case "One Pair": add([2,4,6,8,10,12]); return uniqueSorted(opts);
+    case "Two Pairs": add([6,8,10,12,14,16,18,20,22]); return uniqueSorted(opts);
+    case "Three of a kind": add([3,6,9,12,15,18]); return uniqueSorted(opts);
+    case "Four of a kind": add([4,8,12,16,20,24]); return uniqueSorted(opts);
+    case "Small straight": add([15]); return uniqueSorted(opts);
+    case "Large straight": add([20]); return uniqueSorted(opts);
     case "Full House":{
-      const arr = [0];
+      const arr = [];
       for(let v=7; v<=28; v++) arr.push(v);
       return arr;
     }
     case "Chance":{
       const arr = [];
-      for(let v=0; v<=30; v++) arr.push(v);
+      for(let v=5; v<=30; v++) arr.push(v);
       return arr;
     }
     case "Yahtzee":
-      add([0, settings.bonusPoints]);
+      add([settings.bonusPoints]);
       return uniqueSorted(opts);
     default:
-      return [0];
+      return [];
   }
 }
 
