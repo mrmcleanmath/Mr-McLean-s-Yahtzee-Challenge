@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Yahtzee Score Sheet – Mr. McLean Math</title>
+<title>Yahtzee Score Sheet with AI – Mr. McLean Math</title>
 <style>
   :root{
     --bg:#0b1220;
@@ -62,7 +62,7 @@
   .muted{color:var(--muted)}
   .row{display:flex;gap:10px;align-items:center}
   .row.wrap{flex-wrap:wrap}
-  input[type="text"], input[type="number"]{
+  input[type="text"], input[type="number"], select{
     width:100%;
     padding:10px 12px;
     border-radius:12px;
@@ -71,6 +71,7 @@
     color:var(--text);
     outline:none;
   }
+  select option{color:#000;background:#fff}
   input[type="number"]{appearance:textfield}
   .mini{font-size:12px;color:var(--muted);line-height:1.35}
   .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
@@ -82,6 +83,14 @@
     border-radius:12px;
   }
   .pill b{font-size:14px}
+  .pill .typeTag{
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid rgba(77,163,255,.55);
+    background:rgba(77,163,255,.12);
+    margin-left:8px;
+  }
   .pill .x{
     width:28px;height:28px;border-radius:10px;border:1px solid var(--border);
     display:flex;align-items:center;justify-content:center;
@@ -115,47 +124,16 @@
     gap:10px;
     padding:12px;
   }
-  @media (min-width:720px){
-    .sbGrid{grid-template-columns: repeat(3, 1fr);}
-  }
-  @media (min-width:940px){
-    .sbGrid{grid-template-columns: repeat(4, 1fr);}
-  }
-  .sbCard{
-    border:1px solid var(--border);
-    border-radius:14px;
-    background:rgba(0,0,0,.20);
-    padding:10px 12px;
-  }
-  .sbCard.active{
-    border-color: rgba(34,197,94,.7);
-    box-shadow: 0 0 0 3px rgba(34,197,94,.12) inset;
-    background:rgba(34,197,94,.08);
-  }
-  .sbName{
-    font-weight:900;
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    margin-bottom:6px;
-  }
-  .sbTag{
-    font-size:11px;
-    padding:3px 8px;
-    border-radius:999px;
-    border:1px solid rgba(34,197,94,.6);
-    background:rgba(34,197,94,.14);
-    font-weight:900;
-  }
-  .sbLine{
-    display:flex;justify-content:space-between;gap:10px;
-    font-size:12px;
-    margin-top:4px;
-  }
+  @media (min-width:720px){.sbGrid{grid-template-columns: repeat(3, 1fr)}}
+  @media (min-width:940px){.sbGrid{grid-template-columns: repeat(4, 1fr)}}
+  .sbCard{border:1px solid var(--border);border-radius:14px;background:rgba(0,0,0,.20);padding:10px 12px}
+  .sbCard.active{border-color: rgba(34,197,94,.7);box-shadow: 0 0 0 3px rgba(34,197,94,.12) inset;background:rgba(34,197,94,.08)}
+  .sbName{font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .sbTag{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid rgba(34,197,94,.6);background:rgba(34,197,94,.14);font-weight:900}
+  .sbAi{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid rgba(77,163,255,.6);background:rgba(77,163,255,.14);font-weight:900}
+  .sbLine{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-top:4px}
   .sbLine span{color:var(--muted);font-weight:800}
-  .sbTotal{
-    margin-top:8px;
-    display:flex;justify-content:space-between;gap:10px;
-    font-weight:900;
-  }
+  .sbTotal{margin-top:8px;display:flex;justify-content:space-between;gap:10px;font-weight:900}
 
   .gameHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
   .playerNav{display:flex;align-items:center;gap:10px}
@@ -167,161 +145,68 @@
     cursor:pointer;font-size:18px;font-weight:900
   }
   .navBtn:hover{background:rgba(255,255,255,.09)}
-  .navBtn:disabled{opacity:.45;cursor:not-allowed}
+  .navBtn.disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
   .who{display:flex;flex-direction:column;gap:2px}
   .who .name{font-size:18px;font-weight:900}
   .who .turn{font-size:12px;color:var(--muted)}
   .chips{display:flex;gap:8px;flex-wrap:wrap}
-  .chip{
-    padding:7px 10px;border-radius:999px;
-    background:rgba(255,255,255,.06);
-    border:1px solid var(--border);
-    font-size:12px;font-weight:800;
-  }
+  .chip{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px;font-weight:800}
   .chip.good{border-color:rgba(34,197,94,.6); background:rgba(34,197,94,.12)}
   .chip.warn{border-color:rgba(251,191,36,.6); background:rgba(251,191,36,.12)}
   .chip.bad{border-color:rgba(239,68,68,.6); background:rgba(239,68,68,.12)}
+  .chip.ai{border-color:rgba(77,163,255,.6); background:rgba(77,163,255,.12)}
 
-  .scoreSheetWrap{
-    margin-top:12px;
-    display:grid;
-    grid-template-columns:1fr;
-    gap:14px;
-    align-items:start;
-  }
-  @media (min-width:980px){
-    .scoreSheetWrap{
-      grid-template-columns:minmax(320px, 1fr) minmax(320px, 1fr);
-    }
-  }
-
-  .scoreSheet{
-    border:1px solid var(--border);
-    border-radius:14px;
-    overflow:hidden;
-    background:rgba(255,255,255,.02);
-  }
-  .ssRow{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:10px;
-    padding:11px 12px;
-    background:rgba(255,255,255,.03);
-    border-top:1px solid rgba(255,255,255,.08);
-    cursor:pointer;
-    user-select:none;
-  }
+  .scoreSheetWrap{margin-top:12px;display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+  @media (min-width:980px){.scoreSheetWrap{grid-template-columns:minmax(320px, 1fr) minmax(320px, 1fr)}}
+  .scoreSheet{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.02)}
+  .ssRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.08);cursor:pointer;user-select:none}
   .ssRow:first-child{border-top:none}
   .ssRow:hover{background:rgba(255,255,255,.06)}
   .ssRow.locked{background:rgba(255,255,255,.02);opacity:.94}
-  .ssRow.crossed{
-    background:rgba(239,68,68,.08);
+  .ssRow.crossed{background:rgba(239,68,68,.08)}
+  .ssRow.turnLocked{cursor:not-allowed;opacity:.75}
+  .ssRow.turnLocked:hover{background:rgba(255,255,255,.03)}
+  .ssRow.editableMistake{border-left:4px solid rgba(251,191,36,.95);background:rgba(251,191,36,.08)}
+  .ssRow.aiPicked{
+    border-left:5px solid rgba(77,163,255,.95);
+    background:rgba(77,163,255,.18);
+    box-shadow:0 0 0 3px rgba(77,163,255,.10) inset;
   }
-  .ssRow.turnLocked{
-    cursor:not-allowed;
-    opacity:.75;
-  }
-  .ssRow.turnLocked:hover{
-    background:rgba(255,255,255,.03);
-  }
-  .ssRow.editableMistake{
-    border-left:4px solid rgba(251,191,36,.95);
-    background:rgba(251,191,36,.08);
+  .ssRow.aiPicked .ssName::after{
+    content:"  AI picked";
+    margin-left:8px;
+    font-size:11px;
+    padding:3px 7px;
+    border-radius:999px;
+    border:1px solid rgba(77,163,255,.65);
+    background:rgba(77,163,255,.16);
+    color:var(--text);
+    font-weight:900;
   }
   .ssLeft{display:flex;align-items:center;gap:10px}
-  .badge{
-    width:26px;height:26px;border-radius:9px;
-    display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--border);
-    background:rgba(0,0,0,.25);
-    font-weight:900;font-size:12px;
-  }
+  .badge{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:rgba(0,0,0,.25);font-weight:900;font-size:12px}
   .ssName{font-weight:800}
   .ssVal{font-weight:900}
-  .crossMark{
-    color:#ffb4b4;
-    font-weight:900;
-    letter-spacing:.8px;
-  }
-  .sectionTitle{
-    padding:10px 12px;
-    font-size:12px;
-    font-weight:900;
-    color:var(--muted);
-    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-    border-top:1px solid rgba(255,255,255,.08);
-    text-transform:uppercase;
-    letter-spacing:.9px;
-  }
+  .crossMark{color:#ffb4b4;font-weight:900;letter-spacing:.8px}
+  .sectionTitle{padding:10px 12px;font-size:12px;font-weight:900;color:var(--muted);background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));border-top:1px solid rgba(255,255,255,.08);text-transform:uppercase;letter-spacing:.9px}
   .sectionTitle:first-child{border-top:none}
-
-  .bonusBox{
-    padding:10px 12px;
-    background:rgba(77,163,255,.08);
-    border-top:1px solid rgba(255,255,255,.10);
-    display:flex;flex-direction:column;gap:6px;
-  }
+  .bonusBox{padding:10px 12px;background:rgba(77,163,255,.08);border-top:1px solid rgba(255,255,255,.10);display:flex;flex-direction:column;gap:6px}
   .bonusLine{display:flex;justify-content:space-between;gap:10px;font-weight:800}
   .bonusLine span{color:var(--muted);font-weight:800}
-
-  .totalsBox{
-    padding:12px;background:rgba(0,0,0,.25);
-    border:1px solid var(--border);
-    border-radius:14px;
-    display:grid;grid-template-columns:1fr;gap:8px;
-  }
-  @media (min-width:640px){ .totalsBox{grid-template-columns:1fr 1fr} }
-
-  .totalItem{
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:10px 12px;
-    background:rgba(255,255,255,.03);
-    display:flex;justify-content:space-between;gap:10px;
-    font-weight:900;
-  }
+  .totalsBox{padding:12px;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:14px;display:grid;grid-template-columns:1fr;gap:8px}
+  @media (min-width:640px){.totalsBox{grid-template-columns:1fr 1fr}}
+  .totalItem{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.03);display:flex;justify-content:space-between;gap:10px;font-weight:900}
   .totalItem span{color:var(--muted);font-weight:800}
 
-  .diceZone{
-    margin-top:12px;
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:12px;
-    background:rgba(255,255,255,.03);
-  }
-  .diceTop{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:10px;flex-wrap:wrap
-  }
+  .diceZone{margin-top:12px;border:1px solid var(--border);border-radius:14px;padding:12px;background:rgba(255,255,255,.03)}
+  .diceTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .diceTopLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .diceRow{
-    display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px
-  }
-
-  .die{
-    width:58px;height:58px;border-radius:14px;
-    background:linear-gradient(180deg, #ffffff, #e7eefc);
-    border:1px solid rgba(0,0,0,.15);
-    position:relative;
-    box-shadow:0 10px 18px rgba(0,0,0,.22);
-    cursor:pointer;
-    user-select:none;
-  }
-  .die.blank{
-    cursor:default;
-    background:rgba(255,255,255,.08);
-    border:1px dashed rgba(255,255,255,.28);
-    box-shadow:none
-  }
-  .die.held{
-    outline:3px solid rgba(34,197,94,.8);
-    outline-offset:2px;
-    transform: translateY(-1px);
-  }
-  .die.frozen{
-    cursor:default;
-    opacity:.92;
-  }
-
+  .diceRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .die{width:58px;height:58px;border-radius:14px;background:linear-gradient(180deg, #ffffff, #e7eefc);border:1px solid rgba(0,0,0,.15);position:relative;box-shadow:0 10px 18px rgba(0,0,0,.22);cursor:pointer;user-select:none}
+  .die.blank{cursor:default;background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.28);box-shadow:none}
+  .die.held{outline:3px solid rgba(34,197,94,.8);outline-offset:2px;transform: translateY(-1px)}
+  .die.aiHeld{outline:3px solid rgba(77,163,255,.9);outline-offset:2px;transform: translateY(-1px)}
+  .die.frozen{cursor:default;opacity:.92}
   .pip{width:10px;height:10px;border-radius:999px;background:#0b1220;position:absolute;opacity:0}
   .p1{left:50%;top:50%;transform:translate(-50%,-50%)}
   .p2{left:16px;top:16px}
@@ -331,174 +216,75 @@
   .p6{left:16px;top:50%;transform:translateY(-50%)}
   .p7{right:16px;top:50%;transform:translateY(-50%)}
 
-  .turnActions{
-    margin-top:12px;
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-  }
+  .turnActions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
+  .statusBox{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.08);color:var(--text);font-size:13px;line-height:1.35}
+  .aiLog{margin-top:10px;border:1px solid rgba(77,163,255,.35);background:rgba(77,163,255,.08);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.45;max-height:150px;overflow:auto}
 
-  .modalBackdrop{
-    position:fixed;inset:0;background:rgba(0,0,0,.6);
-    display:none;align-items:center;justify-content:center;
-    padding:16px;
-    z-index:50;
-  }
-  .modal{
-    width:min(640px, 100%);
-    border:1px solid var(--border);
-    background:linear-gradient(180deg, rgba(18,26,51,.96), rgba(10,16,34,.96));
-    border-radius:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.45);
-    padding:14px;
-  }
+  .modalBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .modal{width:min(640px, 100%);border:1px solid var(--border);background:linear-gradient(180deg, rgba(18,26,51,.96), rgba(10,16,34,.96));border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:14px}
   .modalHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
   .modalHead h3{margin:0;font-size:16px}
-  .optGrid{
-    display:grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap:10px;
-  }
-  @media (max-width:520px){ .optGrid{grid-template-columns: repeat(4, 1fr)} }
-  @media (max-width:400px){ .optGrid{grid-template-columns: repeat(3, 1fr)} }
-  .optBtn{
-    padding:10px 0;border-radius:12px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.05);
-    color:var(--text);
-    cursor:pointer;
-    font-weight:900;
-    text-align:center;
-  }
+  .optGrid{display:grid;grid-template-columns: repeat(5, 1fr);gap:10px}
+  @media (max-width:520px){.optGrid{grid-template-columns: repeat(4, 1fr)}}
+  @media (max-width:400px){.optGrid{grid-template-columns: repeat(3, 1fr)}}
+  .optBtn{padding:10px 0;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;font-weight:900;text-align:center}
   .optBtn:hover{background:rgba(255,255,255,.09)}
   .hint{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.35}
   .hide{display:none !important}
-
-  .leader{
-    margin-top:10px;
-    border:1px solid var(--border);
-    border-radius:14px;
-    overflow:hidden;
-  }
-  .leaderRow{
-    display:flex;justify-content:space-between;align-items:center;
-    gap:10px;
-    padding:10px 12px;
-    background:rgba(255,255,255,.03);
-    border-top:1px solid rgba(255,255,255,.08);
-    font-weight:900;
-  }
+  .leader{margin-top:10px;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .leaderRow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.08);font-weight:900}
   .leaderRow:first-child{border-top:none}
-  .leaderRow .place{
-    width:34px;height:28px;border-radius:10px;
-    display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--border);
-    background:rgba(0,0,0,.25);
-    font-size:12px;
-  }
+  .leaderRow .place{width:34px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:rgba(0,0,0,.25);font-size:12px}
   .leaderLeft{display:flex;align-items:center;gap:10px}
-  .winnerTag{
-    margin-left:8px;
-    font-size:12px;
-    padding:4px 8px;
-    border-radius:999px;
-    border:1px solid rgba(34,197,94,.6);
-    background:rgba(34,197,94,.12);
-    color:var(--text);
-    font-weight:900;
-  }
-  .modalActions{
-    display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;
-  }
-
-  .editHint{
-    margin-top:12px;
-    padding:8px 10px;
-    border-radius:12px;
-    border:1px solid rgba(77,163,255,.35);
-    background:rgba(77,163,255,.08);
-    color:var(--muted);
-    font-size:12px;
-    line-height:1.35;
-  }
-
-  .statusBox{
-    margin-top:10px;
-    padding:10px 12px;
-    border-radius:12px;
-    border:1px solid rgba(251,191,36,.35);
-    background:rgba(251,191,36,.08);
-    color:var(--text);
-    font-size:13px;
-    line-height:1.35;
-  }
+  .winnerTag{margin-left:8px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(34,197,94,.6);background:rgba(34,197,94,.12);color:var(--text);font-weight:900}
+  .modalActions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+  .editHint{margin-top:12px;padding:8px 10px;border-radius:12px;border:1px solid rgba(77,163,255,.35);background:rgba(77,163,255,.08);color:var(--muted);font-size:12px;line-height:1.35}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
     <div class="brand"><span class="dot"></span> Yahtzee Score Sheet <span class="muted">• Mr. McLean Math</span></div>
-    <div class="row">
-      <button class="btn small" id="btnNewGame">New Game</button>
-    </div>
+    <div class="row"><button class="btn small" id="btnNewGame">New Game</button></div>
   </div>
 
   <div class="scoreboard hide" id="scoreboardWrap">
-    <div class="sbHead">
-      <div>Scoreboard</div>
-      <div class="mini" id="sbTurnInfo">Turn 1</div>
-    </div>
+    <div class="sbHead"><div>Scoreboard</div><div class="mini" id="sbTurnInfo">Turn 1</div></div>
     <div class="sbGrid" id="sbGrid"></div>
   </div>
 
   <div class="grid" id="setupView">
     <div class="card">
       <h2>Game setup</h2>
-      <div class="mini">Add players, set the bonus, then start. Digital dice are optional and each player can toggle them on/off during their own turns.</div>
-
+      <div class="mini">Add human players, add computer opponents, set the bonus, then start.</div>
       <div class="divider"></div>
-
       <div class="row" style="gap:10px; align-items:flex-end;">
-        <div style="flex:1">
-          <label class="mini">Player name</label>
-          <input type="text" id="playerName" placeholder="e.g. Jonathan" />
-        </div>
+        <div style="flex:1"><label class="mini">Player name</label><input type="text" id="playerName" placeholder="e.g. Jonathan" /></div>
+        <div style="width:120px"><label class="mini">Type</label><select id="playerType"><option value="human">Human</option><option value="ai">AI</option></select></div>
         <button class="btn primary" id="btnAddPlayer">Add</button>
       </div>
-
+      <div class="row wrap" style="margin-top:10px">
+        <button class="btn small" id="btnAddAi">Add AI Opponent</button>
+      </div>
       <div class="list" id="playerList"></div>
-
       <div class="divider"></div>
-
       <div class="row wrap">
-        <div style="flex:1; min-width:170px">
-          <label class="mini">Bonus target</label>
-          <input type="number" id="bonusTarget" value="63" min="0" />
-        </div>
-        <div style="flex:1; min-width:170px">
-          <label class="mini">Bonus points</label>
-          <input type="number" id="bonusPoints" value="50" min="0" />
-        </div>
+        <div style="flex:1; min-width:170px"><label class="mini">Bonus target</label><input type="number" id="bonusTarget" value="63" min="0" /></div>
+        <div style="flex:1; min-width:170px"><label class="mini">Bonus points</label><input type="number" id="bonusPoints" value="50" min="0" /></div>
       </div>
-
       <div class="divider"></div>
-
       <button class="btn good" id="btnStart">Start game</button>
-      <div class="mini" style="margin-top:8px">
-        Rule used here: If Upper Total reaches the Bonus Target, the Bonus Points are added.
-      </div>
+      <div class="mini" style="margin-top:8px">Rule used here: If Upper Total reaches the Bonus Target, the Bonus Points are added.</div>
     </div>
 
     <div class="card">
-      <h2>How scoring works in this app</h2>
+      <h2>How the AI opponent works</h2>
       <div class="mini">
-        Click a category to enter a score.
+        The AI is a built-in computer opponent. It rolls the digital dice, chooses what to keep, rolls again, then chooses a category.
         <br><br>
-        If a category must be eliminated, use <b>Cross Out Category</b>. Crossed-out categories display as <b>X</b>.
+        It is rule-based, not internet-connected. It tries to chase Yahtzee, strong multiples, straights, full house, upper-section bonus, and Chance. If there is no useful score, it crosses out a category.
         <br><br>
-        After a score is submitted, that player's scorecard locks for the rest of the turn. The next step is to click <b>End Turn / Next Player</b>.
-        <br><br>
-        If the player made a mistake, use <b>Edit Mistake</b> to correct that one entry before moving on.
+        Human turns still work manually. After a human submits a score or crosses out a category, the scorecard locks until <b>End Turn / Next Player</b> is clicked.
       </div>
     </div>
   </div>
@@ -508,10 +294,7 @@
       <div class="gameHead">
         <div class="playerNav">
           <div class="navBtn" id="btnPrev" title="Previous player">&#8249;</div>
-          <div class="who">
-            <div class="name" id="curName">Player</div>
-            <div class="turn" id="curTurn">Turn 1</div>
-          </div>
+          <div class="who"><div class="name" id="curName">Player</div><div class="turn" id="curTurn">Turn 1</div></div>
           <div class="navBtn" id="btnNext" title="Next player">&#8250;</div>
         </div>
         <div class="chips">
@@ -526,13 +309,12 @@
           <div class="diceTopLeft">
             <button class="btn small" id="btnToggleDice">Use Digital Dice</button>
             <button class="btn primary small" id="btnRoll">Roll</button>
+            <button class="btn primary small" id="btnAiPlay">Let AI Play Turn</button>
           </div>
           <div class="chip" id="chipRolls">Rolls left: 3</div>
         </div>
         <div class="diceRow" id="diceRow"></div>
-        <div class="mini" style="margin-top:10px">
-          Roll up to 3 times. Click dice to hold between rolls. After the 3rd roll, holds freeze and rolling is disabled.
-        </div>
+        <div class="mini" style="margin-top:10px">Human players can roll up to 3 times. Click dice to hold between rolls. AI players roll and choose automatically.</div>
       </div>
 
       <div class="turnActions">
@@ -540,76 +322,46 @@
         <button class="btn good" id="btnEndTurn">End Turn / Next Player</button>
       </div>
 
-      <div class="statusBox" id="turnStatusBox">
-        This player's scorecard is open. Choose one category to score or cross out.
-      </div>
-
+      <div class="statusBox" id="turnStatusBox">This player's scorecard is open. Choose one category to score or cross out.</div>
+      <div class="aiLog hide" id="aiLog"></div>
       <div class="divider"></div>
-
-      <div class="mini">
-        After a player submits a category, their card locks. The next player should not roll until <b>End Turn / Next Player</b> is clicked.
-      </div>
+      <div class="mini">After a human submits a category, their card locks. The next player should not roll until <b>End Turn / Next Player</b> is clicked.</div>
     </div>
 
     <div class="card">
       <h2 style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
         <span>Score sheet</span>
-        <span class="mini">Crossed-out categories show X. Edit is only allowed through the Edit Mistake button.</span>
+        <span class="mini">Crossed-out categories show X.</span>
       </h2>
-
-      <div class="scoreSheetWrap">
-        <div class="scoreSheet" id="upperSheet"></div>
-        <div class="scoreSheet" id="lowerSheet"></div>
-      </div>
-
+      <div class="scoreSheetWrap"><div class="scoreSheet" id="upperSheet"></div><div class="scoreSheet" id="lowerSheet"></div></div>
       <div class="totalsBox" id="totalsBox" style="margin-top:14px;"></div>
-
-      <div class="editHint">
-        <b>Scored</b> means the category received points. <b>X</b> means the category was crossed out. <b>Undo entry</b> clears the category and returns it to blank.
-      </div>
+      <div class="editHint"><b>Scored</b> means the category received points. <b>X</b> means the category was crossed out. <b>Undo entry</b> clears the category and returns it to blank.</div>
     </div>
   </div>
 </div>
 
 <div class="modalBackdrop" id="modalBackdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true">
-    <div class="modalHead">
-      <h3 id="modalTitle">Select score</h3>
-      <button class="btn small" id="btnCloseModal">Close</button>
-    </div>
+    <div class="modalHead"><h3 id="modalTitle">Select score</h3><button class="btn small" id="btnCloseModal">Close</button></div>
     <div class="mini" id="modalSub" style="margin-bottom:10px"></div>
     <div class="optGrid" id="optGrid"></div>
-    <div class="hint" id="modalHint">
-      Choose the score you want to record.
-    </div>
+    <div class="hint" id="modalHint">Choose the score you want to record.</div>
     <div class="modalActions" id="extraModalActions"></div>
   </div>
 </div>
 
 <div class="modalBackdrop" id="endBackdrop" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true">
-    <div class="modalHead">
-      <h3 id="endTitle">Game Over</h3>
-      <button class="btn small" id="btnCloseEnd">Close</button>
-    </div>
-
+    <div class="modalHead"><h3 id="endTitle">Game Over</h3><button class="btn small" id="btnCloseEnd">Close</button></div>
     <div class="mini" id="endSummary"></div>
-
     <div class="leader" id="leaderboard"></div>
-
-    <div class="modalActions">
-      <button class="btn" id="btnCloseEnd2">Close</button>
-      <button class="btn good" id="btnNewGame2">Start New Game</button>
-    </div>
+    <div class="modalActions"><button class="btn" id="btnCloseEnd2">Close</button><button class="btn good" id="btnNewGame2">Start New Game</button></div>
   </div>
 </div>
 
 <script>
 const UPPER = ["Ones","Twos","Threes","Fours","Fives","Sixes"];
-const LOWER = [
-  "One Pair","Two Pairs","Three of a kind","Four of a kind",
-  "Small straight","Large straight","Full House","Chance","Yahtzee"
-];
+const LOWER = ["One Pair","Two Pairs","Three of a kind","Four of a kind","Small straight","Large straight","Full House","Chance","Yahtzee"];
 const ALL_CATEGORIES = [...UPPER, ...LOWER];
 
 let settings = { bonusTarget:63, bonusPoints:50 };
@@ -617,737 +369,448 @@ let players = [];
 let curIndex = 0;
 let turnNumber = 1;
 let gameOverShown = false;
+let aiBusy = false;
+let aiNameCount = 1;
 
-function makeBlankScores(){
-  const scores = {};
-  ALL_CATEGORIES.forEach(k => scores[k] = null);
-  return scores;
-}
-function makeBlankStatus(){
-  const status = {};
-  ALL_CATEGORIES.forEach(k => status[k] = "empty");
-  return status;
-}
-function upperTotal(p){
-  return UPPER.reduce((s,k)=> s + (p.status[k] === "scored" ? (p.scores[k] || 0) : 0), 0);
-}
-function bonusEarned(p){ return upperTotal(p) >= settings.bonusTarget ? settings.bonusPoints : 0; }
-function lowerTotal(p){
-  return LOWER.reduce((s,k)=> s + (p.status[k] === "scored" ? (p.scores[k] || 0) : 0), 0);
-}
-function grandTotal(p){ return upperTotal(p) + bonusEarned(p) + lowerTotal(p); }
-function clampInt(n, fallback=0){
-  const v = parseInt(n,10);
-  return Number.isFinite(v) ? v : fallback;
-}
-function escapeHtml(str){
-  return (str||"").replace(/[&<>"']/g, (m)=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[m]));
-}
-function categoryUsed(p, cat){
-  return p.status[cat] === "scored" || p.status[cat] === "crossed";
-}
-function allCategoriesUsed(p){
-  return ALL_CATEGORIES.every(cat => categoryUsed(p, cat));
-}
-function isGameFinished(){
-  return players.length > 0 && players.every(p => allCategoriesUsed(p));
-}
-function currentPlayer(){
-  return players[curIndex];
-}
-function canEditCategoryThisTurn(p, category){
-  return !!p.editMistakeMode && p.lastTurnCategory === category;
-}
-function isScorecardLockedForTurn(p){
-  return !!p.turnCommitted && !p.editMistakeMode;
+function makeBlankScores(){const scores={};ALL_CATEGORIES.forEach(k=>scores[k]=null);return scores;}
+function makeBlankStatus(){const status={};ALL_CATEGORIES.forEach(k=>status[k]="empty");return status;}
+function upperTotal(p){return UPPER.reduce((s,k)=>s+(p.status[k]==="scored"?(p.scores[k]||0):0),0)}
+function bonusEarned(p){return upperTotal(p)>=settings.bonusTarget?settings.bonusPoints:0}
+function lowerTotal(p){return LOWER.reduce((s,k)=>s+(p.status[k]==="scored"?(p.scores[k]||0):0),0)}
+function grandTotal(p){return upperTotal(p)+bonusEarned(p)+lowerTotal(p)}
+function clampInt(n,fallback=0){const v=parseInt(n,10);return Number.isFinite(v)?v:fallback}
+function escapeHtml(str){return (str||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function categoryUsed(p,cat){return p.status[cat]==="scored"||p.status[cat]==="crossed"}
+function allCategoriesUsed(p){return ALL_CATEGORIES.every(cat=>categoryUsed(p,cat))}
+function isGameFinished(){return players.length>0&&players.every(p=>allCategoriesUsed(p))}
+function currentPlayer(){return players[curIndex]}
+function canEditCategoryThisTurn(p,category){return !!p.editMistakeMode&&p.lastTurnCategory===category}
+function isScorecardLockedForTurn(p){return !!p.turnCommitted&&!p.editMistakeMode}
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+
+const setupView=document.getElementById("setupView"),gameView=document.getElementById("gameView"),scoreboardWrap=document.getElementById("scoreboardWrap"),sbGrid=document.getElementById("sbGrid"),sbTurnInfo=document.getElementById("sbTurnInfo");
+const playerName=document.getElementById("playerName"),playerType=document.getElementById("playerType"),playerList=document.getElementById("playerList"),bonusTarget=document.getElementById("bonusTarget"),bonusPoints=document.getElementById("bonusPoints");
+
+function newPlayer(name,type="human"){
+  return {name,type,scores:makeBlankScores(),status:makeBlankStatus(),diceOn:type==="ai",dice:[0,0,0,0,0],held:[false,false,false,false,false],rollsLeft:3,turnCommitted:false,editMistakeMode:false,lastTurnCategory:null,aiNote:"",lastAiPick:null};
 }
 
-const setupView = document.getElementById("setupView");
-const gameView  = document.getElementById("gameView");
-const scoreboardWrap = document.getElementById("scoreboardWrap");
-const sbGrid = document.getElementById("sbGrid");
-const sbTurnInfo = document.getElementById("sbTurnInfo");
-
-const playerName = document.getElementById("playerName");
-const playerList = document.getElementById("playerList");
-const bonusTarget = document.getElementById("bonusTarget");
-const bonusPoints = document.getElementById("bonusPoints");
-
-document.getElementById("btnAddPlayer").addEventListener("click", ()=>{
-  const name = (playerName.value || "").trim();
-  if(!name) return;
-  players.push({
-    name,
-    scores: makeBlankScores(),
-    status: makeBlankStatus(),
-    diceOn: false,
-    dice: [0,0,0,0,0],
-    held: [false,false,false,false,false],
-    rollsLeft: 3,
-    turnCommitted: false,
-    editMistakeMode: false,
-    lastTurnCategory: null
-  });
-  playerName.value = "";
+document.getElementById("btnAddPlayer").addEventListener("click",()=>{
+  const name=(playerName.value||"").trim();
+  if(!name)return;
+  players.push(newPlayer(name,playerType.value));
+  playerName.value="";
   renderPlayerList();
 });
-
-playerName.addEventListener("keydown",(e)=>{
-  if(e.key === "Enter"){
-    e.preventDefault();
-    document.getElementById("btnAddPlayer").click();
-  }
+document.getElementById("btnAddAi").addEventListener("click",()=>{
+  players.push(newPlayer(`AI Player ${aiNameCount++}`,"ai"));
+  renderPlayerList();
 });
+playerName.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();document.getElementById("btnAddPlayer").click();}});
 
 function renderPlayerList(){
-  playerList.innerHTML = "";
-  players.forEach((p, idx)=>{
-    const div = document.createElement("div");
-    div.className = "pill";
-    div.innerHTML = `<b>${escapeHtml(p.name)}</b><div class="x" title="Remove">×</div>`;
-    div.querySelector(".x").addEventListener("click", ()=>{
-      players.splice(idx,1);
-      renderPlayerList();
-    });
+  playerList.innerHTML="";
+  players.forEach((p,idx)=>{
+    const div=document.createElement("div");
+    div.className="pill";
+    div.innerHTML=`<div><b>${escapeHtml(p.name)}</b><span class="typeTag">${p.type==="ai"?"AI":"Human"}</span></div><div class="x" title="Remove">×</div>`;
+    div.querySelector(".x").addEventListener("click",()=>{players.splice(idx,1);renderPlayerList();});
     playerList.appendChild(div);
   });
 }
 
-document.getElementById("btnStart").addEventListener("click", ()=>{
-  if(players.length < 1){
-    alert("Add at least one player.");
-    return;
-  }
-  settings.bonusTarget = Math.max(0, clampInt(bonusTarget.value, 63));
-  settings.bonusPoints = Math.max(0, clampInt(bonusPoints.value, 50));
+document.getElementById("btnStart").addEventListener("click",()=>{
+  if(players.length<1){alert("Add at least one player.");return;}
+  settings.bonusTarget=Math.max(0,clampInt(bonusTarget.value,63));
+  settings.bonusPoints=Math.max(0,clampInt(bonusPoints.value,50));
+  curIndex=0;turnNumber=1;gameOverShown=false;aiBusy=false;
+  players.forEach(p=>{p.diceOn=p.type==="ai";p.dice=[0,0,0,0,0];p.held=[false,false,false,false,false];p.rollsLeft=3;p.turnCommitted=false;p.editMistakeMode=false;p.lastTurnCategory=null;p.aiNote="";});
+  setupView.classList.add("hide");gameView.classList.remove("hide");scoreboardWrap.classList.remove("hide");renderAll();
+});
 
-  curIndex = 0;
-  turnNumber = 1;
-  gameOverShown = false;
+function blockIfAiBusy(){if(aiBusy){alert("The AI is currently taking its turn.");return true}return false}
 
-  players.forEach(p=>{
-    p.diceOn = false;
-    p.dice = [0,0,0,0,0];
-    p.held = [false,false,false,false,false];
-    p.rollsLeft = 3;
-    p.turnCommitted = false;
-    p.editMistakeMode = false;
-    p.lastTurnCategory = null;
-  });
+document.getElementById("btnPrev").addEventListener("click",()=>{
+  if(blockIfAiBusy())return;
+  const p=currentPlayer();
+  if(p&&p.turnCommitted&&!p.editMistakeMode){alert("This turn is already submitted. Click End Turn / Next Player.");return;}
+  curIndex=(curIndex-1+players.length)%players.length;renderAll();
+});
+document.getElementById("btnNext").addEventListener("click",()=>{
+  if(blockIfAiBusy())return;
+  const p=currentPlayer();
+  if(p&&p.turnCommitted&&!p.editMistakeMode){alert("This turn is already submitted. Click End Turn / Next Player.");return;}
+  curIndex=(curIndex+1)%players.length;renderAll();
+});
 
-  setupView.classList.add("hide");
-  gameView.classList.remove("hide");
-  scoreboardWrap.classList.remove("hide");
+function startNewGameToSetup(){players=[];curIndex=0;turnNumber=1;gameOverShown=false;aiBusy=false;playerList.innerHTML="";bonusTarget.value="63";bonusPoints.value="50";scoreboardWrap.classList.add("hide");gameView.classList.add("hide");setupView.classList.remove("hide")}
+document.getElementById("btnNewGame").addEventListener("click",()=>{if(confirm("Start a new game? This will clear scores."))startNewGameToSetup();});
+
+document.getElementById("btnToggleDice").addEventListener("click",()=>{
+  if(blockIfAiBusy())return;
+  const p=currentPlayer();if(!p)return;
+  if(p.type==="ai"){alert("AI players always use digital dice.");return;}
+  if(p.turnCommitted&&!p.editMistakeMode){alert("This turn has already been submitted. Click End Turn / Next Player.");return;}
+  p.diceOn=!p.diceOn;
+  if(!p.diceOn){p.dice=[0,0,0,0,0];p.held=[false,false,false,false,false];p.rollsLeft=3;}
   renderAll();
 });
 
-document.getElementById("btnPrev").addEventListener("click", ()=>{
-  const p = currentPlayer();
-  if(p && p.turnCommitted && !p.editMistakeMode){
-    alert("This turn is already submitted. Click End Turn / Next Player.");
-    return;
-  }
-  curIndex = (curIndex - 1 + players.length) % players.length;
-  renderAll();
-});
-document.getElementById("btnNext").addEventListener("click", ()=>{
-  const p = currentPlayer();
-  if(p && p.turnCommitted && !p.editMistakeMode){
-    alert("This turn is already submitted. Click End Turn / Next Player.");
-    return;
-  }
-  curIndex = (curIndex + 1) % players.length;
-  renderAll();
+document.getElementById("btnRoll").addEventListener("click",()=>{
+  if(blockIfAiBusy())return;
+  const p=currentPlayer();if(!p)return;
+  if(p.type==="ai"){alert("Click Let AI Play Turn for an AI player.");return;}
+  if(p.turnCommitted&&!p.editMistakeMode){alert("This turn has already been submitted. Click End Turn / Next Player.");return;}
+  if(!p.diceOn||p.rollsLeft<=0)return;
+  rollUnheldDice(p);p.rollsLeft--;renderAll();
 });
 
-function startNewGameToSetup(){
-  players = [];
-  curIndex = 0;
-  turnNumber = 1;
-  gameOverShown = false;
+function rollUnheldDice(p){for(let i=0;i<5;i++){if(!p.held[i])p.dice[i]=Math.floor(Math.random()*6)+1;}}
+function resetTurnStateForPlayer(p){p.dice=[0,0,0,0,0];p.held=[false,false,false,false,false];p.rollsLeft=3;p.turnCommitted=false;p.editMistakeMode=false;p.lastTurnCategory=null;p.aiNote="";p.lastAiPick=null;if(p.type==="ai")p.diceOn=true;}
+function advanceToNextPlayer(){if(players.length===0)return;curIndex=(curIndex+1)%players.length;if(curIndex===0)turnNumber++;resetTurnStateForPlayer(players[curIndex]);}
 
-  playerList.innerHTML = "";
-  bonusTarget.value = "63";
-  bonusPoints.value = "50";
-
-  scoreboardWrap.classList.add("hide");
-  gameView.classList.add("hide");
-  setupView.classList.remove("hide");
-}
-
-document.getElementById("btnNewGame").addEventListener("click", ()=>{
-  if(confirm("Start a new game? This will clear scores.")){
-    startNewGameToSetup();
-  }
+document.getElementById("btnEndTurn").addEventListener("click",()=>{
+  if(blockIfAiBusy())return;
+  if(players.length===0)return;
+  const current=currentPlayer();
+  if(!current.turnCommitted){const proceed=confirm("No category has been submitted for this turn. Move to the next player anyway?");if(!proceed)return;}
+  current.dice=[0,0,0,0,0];current.held=[false,false,false,false,false];current.rollsLeft=3;current.editMistakeMode=false;
+  advanceToNextPlayer();renderAll();
 });
 
-document.getElementById("btnToggleDice").addEventListener("click", ()=>{
-  const p = currentPlayer();
-  if(!p) return;
-  if(p.turnCommitted && !p.editMistakeMode){
-    alert("This turn has already been submitted. Click End Turn / Next Player.");
-    return;
-  }
-  p.diceOn = !p.diceOn;
-  if(!p.diceOn){
-    p.dice = [0,0,0,0,0];
-    p.held = [false,false,false,false,false];
-    p.rollsLeft = 3;
-  }
-  renderAll();
+document.getElementById("btnEditMistake").addEventListener("click",()=>{
+  if(blockIfAiBusy())return;
+  const p=currentPlayer();if(!p)return;
+  if(p.type==="ai"){alert("AI turns cannot be manually edited during play. You can still correct final scores by starting a new game if needed.");return;}
+  if(!p.turnCommitted){alert("There is nothing to edit yet. Submit a score or cross out a category first.");return;}
+  if(!p.lastTurnCategory){alert("No entry from this turn was found.");return;}
+  p.editMistakeMode=!p.editMistakeMode;renderAll();
 });
 
-document.getElementById("btnRoll").addEventListener("click", ()=>{
-  const p = currentPlayer();
-  if(!p) return;
-  if(p.turnCommitted && !p.editMistakeMode){
-    alert("This turn has already been submitted. Click End Turn / Next Player.");
-    return;
-  }
-  if(!p.diceOn) return;
-  if(p.rollsLeft <= 0) return;
+document.getElementById("btnAiPlay").addEventListener("click",async()=>{await playAiTurnIfCurrent();});
 
-  for(let i=0;i<5;i++){
-    if(!p.held[i]){
-      p.dice[i] = Math.floor(Math.random()*6)+1;
-    }
-  }
-  p.rollsLeft--;
-  renderAll();
-});
-
-function resetTurnStateForPlayer(p){
-  p.dice = [0,0,0,0,0];
-  p.held = [false,false,false,false,false];
-  p.rollsLeft = 3;
-  p.turnCommitted = false;
-  p.editMistakeMode = false;
-  p.lastTurnCategory = null;
-}
-
-function advanceToNextPlayer(){
-  if(players.length === 0) return;
-  curIndex = (curIndex + 1) % players.length;
-  if(curIndex === 0) turnNumber++;
-
-  const p = players[curIndex];
-  resetTurnStateForPlayer(p);
-}
-
-document.getElementById("btnEndTurn").addEventListener("click", ()=>{
-  if(players.length === 0) return;
-
-  const current = currentPlayer();
-  if(!current.turnCommitted){
-    const proceed = confirm("No category has been submitted for this turn. Move to the next player anyway?");
-    if(!proceed) return;
-  }
-
-  current.dice = [0,0,0,0,0];
-  current.held = [false,false,false,false,false];
-  current.rollsLeft = 3;
-  current.editMistakeMode = false;
-
-  advanceToNextPlayer();
-  renderAll();
-});
-
-document.getElementById("btnEditMistake").addEventListener("click", ()=>{
-  const p = currentPlayer();
-  if(!p) return;
-
-  if(!p.turnCommitted){
-    alert("There is nothing to edit yet. Submit a score or cross out a category first.");
-    return;
-  }
-  if(!p.lastTurnCategory){
-    alert("No entry from this turn was found.");
-    return;
-  }
-
-  p.editMistakeMode = !p.editMistakeMode;
-  renderAll();
-});
-
-const upperSheet = document.getElementById("upperSheet");
-const lowerSheet = document.getElementById("lowerSheet");
-const totalsBox = document.getElementById("totalsBox");
-const curName = document.getElementById("curName");
-const curTurn = document.getElementById("curTurn");
-const chipBonus = document.getElementById("chipBonus");
-const chipDice = document.getElementById("chipDice");
-const chipRolls = document.getElementById("chipRolls");
-const chipCardState = document.getElementById("chipCardState");
-const btnRoll = document.getElementById("btnRoll");
-const btnEditMistake = document.getElementById("btnEditMistake");
-const btnPrev = document.getElementById("btnPrev");
-const btnNext = document.getElementById("btnNext");
-const turnStatusBox = document.getElementById("turnStatusBox");
+const upperSheet=document.getElementById("upperSheet"),lowerSheet=document.getElementById("lowerSheet"),totalsBox=document.getElementById("totalsBox"),curName=document.getElementById("curName"),curTurn=document.getElementById("curTurn"),chipBonus=document.getElementById("chipBonus"),chipDice=document.getElementById("chipDice"),chipRolls=document.getElementById("chipRolls"),chipCardState=document.getElementById("chipCardState"),btnRoll=document.getElementById("btnRoll"),btnEditMistake=document.getElementById("btnEditMistake"),btnPrev=document.getElementById("btnPrev"),btnNext=document.getElementById("btnNext"),turnStatusBox=document.getElementById("turnStatusBox"),btnAiPlay=document.getElementById("btnAiPlay"),aiLog=document.getElementById("aiLog");
 
 function renderAll(){
-  if(players.length === 0) return;
+  if(players.length===0)return;
+  const p=currentPlayer();
+  curName.textContent=p.name+(p.type==="ai"?" (AI)":"");
+  curTurn.textContent=`Turn ${turnNumber}`;
+  chipBonus.textContent=`Bonus: ${upperTotal(p)}/${settings.bonusTarget}`;
+  chipDice.textContent=`Digital Dice: ${p.diceOn?"On":"Off"}`;
+  chipDice.className="chip "+(p.type==="ai"?"ai":(p.diceOn?"good":""));
+  chipRolls.textContent=`Rolls left: ${p.diceOn?p.rollsLeft:"-"}`;
 
-  const p = currentPlayer();
+  if(p.type==="ai"){
+    chipCardState.textContent=p.turnCommitted?"AI Done":"AI Turn";chipCardState.className="chip ai";
+    turnStatusBox.innerHTML=p.turnCommitted?`AI has submitted its score. Click <b>End Turn / Next Player</b>.`:`Click <b>Let AI Play Turn</b>. The AI will roll, hold dice, and choose a category.`;
+  }else if(p.turnCommitted){
+    if(p.editMistakeMode){chipCardState.textContent="Edit Mistake On";chipCardState.className="chip warn";turnStatusBox.innerHTML=`Only <b>${escapeHtml(p.lastTurnCategory||"")}</b> can be changed right now.`;}
+    else{chipCardState.textContent="Card Locked";chipCardState.className="chip bad";turnStatusBox.innerHTML=`This player's turn has already been submitted. The scorecard is locked. Click <b>End Turn / Next Player</b>.`;}
+  }else{chipCardState.textContent="Card Open";chipCardState.className="chip good";turnStatusBox.textContent="This player's scorecard is open. Choose one category to score or cross out.";}
 
-  curName.textContent = p.name;
-  curTurn.textContent = `Turn ${turnNumber}`;
-  chipBonus.textContent = `Bonus: ${upperTotal(p)}/${settings.bonusTarget}`;
-  chipDice.textContent = `Digital Dice: ${p.diceOn ? "On" : "Off"}`;
-  chipDice.className = "chip " + (p.diceOn ? "good" : "");
-  chipRolls.textContent = `Rolls left: ${p.diceOn ? p.rollsLeft : "-"}`;
+  btnRoll.disabled=p.type==="ai"||!p.diceOn||p.rollsLeft<=0||(p.turnCommitted&&!p.editMistakeMode)||aiBusy;
+  document.getElementById("diceRow").classList.toggle("hide",!p.diceOn);
+  document.getElementById("btnToggleDice").textContent=p.diceOn?"Hide Digital Dice":"Use Digital Dice";
+  document.getElementById("btnToggleDice").disabled=p.type==="ai"||aiBusy;
+  btnEditMistake.textContent=p.editMistakeMode?"Finish Editing":"Edit Mistake";
+  btnEditMistake.disabled=p.type==="ai"||!p.turnCommitted||aiBusy;
+  btnAiPlay.classList.toggle("hide",p.type!=="ai");
+  btnAiPlay.disabled=p.type!=="ai"||p.turnCommitted||aiBusy;
+  btnPrev.classList.toggle("disabled",aiBusy||(p.turnCommitted&&!p.editMistakeMode));
+  btnNext.classList.toggle("disabled",aiBusy||(p.turnCommitted&&!p.editMistakeMode));
+  aiLog.classList.toggle("hide",p.type!=="ai"&&!p.aiNote);
+  aiLog.innerHTML=p.aiNote?escapeHtml(p.aiNote).replace(/\n/g,"<br>"):"";
 
-  if(p.turnCommitted){
-    if(p.editMistakeMode){
-      chipCardState.textContent = "Edit Mistake On";
-      chipCardState.className = "chip warn";
-      turnStatusBox.innerHTML = `Only <b>${escapeHtml(p.lastTurnCategory || "")}</b> can be changed right now. When finished, either turn off Edit Mistake or click End Turn / Next Player.`;
-    }else{
-      chipCardState.textContent = "Card Locked";
-      chipCardState.className = "chip bad";
-      turnStatusBox.innerHTML = `This player's turn has already been submitted. The scorecard is locked. The normal next step is to click <b>End Turn / Next Player</b>.`;
-    }
-  }else{
-    chipCardState.textContent = "Card Open";
-    chipCardState.className = "chip good";
-    turnStatusBox.textContent = "This player's scorecard is open. Choose one category to score or cross out.";
-  }
-
-  btnRoll.disabled = !p.diceOn || p.rollsLeft <= 0 || (p.turnCommitted && !p.editMistakeMode);
-  document.getElementById("diceRow").classList.toggle("hide", !p.diceOn);
-  document.getElementById("btnToggleDice").textContent = p.diceOn ? "Hide Digital Dice" : "Use Digital Dice";
-
-  btnEditMistake.textContent = p.editMistakeMode ? "Finish Editing" : "Edit Mistake";
-  btnEditMistake.disabled = !p.turnCommitted;
-  btnPrev.disabled = p.turnCommitted && !p.editMistakeMode;
-  btnNext.disabled = p.turnCommitted && !p.editMistakeMode;
-
-  sbTurnInfo.textContent = `Turn ${turnNumber} • Current: ${p.name}`;
-  renderScoreboard();
-  renderDice();
-  renderScoreSheet();
-
-  maybeShowGameOver();
+  sbTurnInfo.textContent=`Turn ${turnNumber} • Current: ${p.name}${p.type==="ai"?" (AI)":""}`;
+  renderScoreboard();renderDice();renderScoreSheet();maybeShowGameOver();
 }
 
 function renderScoreboard(){
-  sbGrid.innerHTML = "";
-  players.forEach((pl, idx)=>{
-    const upper = upperTotal(pl);
-    const bonus = bonusEarned(pl);
-    const lower = lowerTotal(pl);
-    const total = grandTotal(pl);
-
-    const card = document.createElement("div");
-    card.className = "sbCard" + (idx === curIndex ? " active" : "");
-    card.innerHTML = `
-      <div class="sbName">
-        <div>${escapeHtml(pl.name)}</div>
-        ${idx === curIndex ? `<div class="sbTag">Turn</div>` : ``}
-      </div>
-      <div class="sbLine"><span>Upper</span><b>${upper}</b></div>
-      <div class="sbLine"><span>Bonus</span><b>${bonus}</b></div>
-      <div class="sbLine"><span>Lower</span><b>${lower}</b></div>
-      <div class="sbTotal"><span>Total</span><b>${total}</b></div>
-    `;
+  sbGrid.innerHTML="";
+  players.forEach((pl,idx)=>{
+    const upper=upperTotal(pl),bonus=bonusEarned(pl),lower=lowerTotal(pl),total=grandTotal(pl);
+    const card=document.createElement("div");card.className="sbCard"+(idx===curIndex?" active":"");
+    card.innerHTML=`<div class="sbName"><div>${escapeHtml(pl.name)}</div><div>${pl.type==="ai"?`<span class="sbAi">AI</span>`:""}${idx===curIndex?`<span class="sbTag">Turn</span>`:""}</div></div><div class="sbLine"><span>Upper</span><b>${upper}</b></div><div class="sbLine"><span>Bonus</span><b>${bonus}</b></div><div class="sbLine"><span>Lower</span><b>${lower}</b></div><div class="sbTotal"><span>Total</span><b>${total}</b></div>`;
     sbGrid.appendChild(card);
   });
 }
-
 function renderScoreSheet(){
-  const p = currentPlayer();
-  upperSheet.innerHTML = "";
-  lowerSheet.innerHTML = "";
-  totalsBox.innerHTML = "";
-
-  upperSheet.appendChild(sectionTitle("Upper section"));
-  UPPER.forEach((cat, i)=> upperSheet.appendChild(scoreRow(cat, i+1, p)));
-
-  const b = document.createElement("div");
-  b.className = "bonusBox";
-  const uTot = upperTotal(p);
-  const bEarn = bonusEarned(p);
-  b.innerHTML = `
-    <div class="bonusLine"><span>Upper total</span><b>${uTot}</b></div>
-    <div class="bonusLine"><span>Bonus progress</span><b>${uTot} / ${settings.bonusTarget}</b></div>
-    <div class="bonusLine"><span>Bonus</span><b>${bEarn}</b></div>
-  `;
-  upperSheet.appendChild(b);
-
-  lowerSheet.appendChild(sectionTitle("Lower section"));
-  LOWER.forEach((cat, i)=> lowerSheet.appendChild(scoreRow(cat, i+1, p)));
-
-  totalsBox.appendChild(totalItem("Upper total", upperTotal(p)));
-  totalsBox.appendChild(totalItem("Bonus", bonusEarned(p)));
-  totalsBox.appendChild(totalItem("Lower total", lowerTotal(p)));
-  totalsBox.appendChild(totalItem("Total", grandTotal(p)));
+  const p=currentPlayer();upperSheet.innerHTML="";lowerSheet.innerHTML="";totalsBox.innerHTML="";
+  upperSheet.appendChild(sectionTitle("Upper section"));UPPER.forEach((cat,i)=>upperSheet.appendChild(scoreRow(cat,i+1,p)));
+  const b=document.createElement("div");b.className="bonusBox";const uTot=upperTotal(p),bEarn=bonusEarned(p);
+  b.innerHTML=`<div class="bonusLine"><span>Upper total</span><b>${uTot}</b></div><div class="bonusLine"><span>Bonus progress</span><b>${uTot} / ${settings.bonusTarget}</b></div><div class="bonusLine"><span>Bonus</span><b>${bEarn}</b></div>`;upperSheet.appendChild(b);
+  lowerSheet.appendChild(sectionTitle("Lower section"));LOWER.forEach((cat,i)=>lowerSheet.appendChild(scoreRow(cat,i+1,p)));
+  totalsBox.appendChild(totalItem("Upper total",upperTotal(p)));totalsBox.appendChild(totalItem("Bonus",bonusEarned(p)));totalsBox.appendChild(totalItem("Lower total",lowerTotal(p)));totalsBox.appendChild(totalItem("Total",grandTotal(p)));
 }
-
-function sectionTitle(text){
-  const d = document.createElement("div");
-  d.className = "sectionTitle";
-  d.textContent = text;
-  return d;
+function sectionTitle(text){const d=document.createElement("div");d.className="sectionTitle";d.textContent=text;return d}
+function totalItem(label,val){const d=document.createElement("div");d.className="totalItem";d.innerHTML=`<span>${label}</span><b>${val}</b>`;return d}
+function scoreRow(category,badgeNum,p){
+  const row=document.createElement("div");row.className="ssRow";
+  if(categoryUsed(p,category))row.classList.add("locked");if(p.status[category]==="crossed")row.classList.add("crossed");if(isScorecardLockedForTurn(p)||p.type==="ai")row.classList.add("turnLocked");if(canEditCategoryThisTurn(p,category))row.classList.add("editableMistake");if(p.type==="ai"&&p.lastAiPick===category)row.classList.add("aiPicked");
+  const left=document.createElement("div");left.className="ssLeft";left.innerHTML=`<div class="badge">${badgeNum}</div><div class="ssName">${category}</div>`;
+  const right=document.createElement("div");right.className="ssVal";
+  if(p.status[category]==="scored")right.textContent=p.scores[category];else if(p.status[category]==="crossed")right.innerHTML=`<span class="crossMark">X</span>`;else right.textContent="";
+  row.appendChild(left);row.appendChild(right);row.addEventListener("click",()=>handleCategoryClick(category));return row;
 }
-function totalItem(label, val){
-  const d = document.createElement("div");
-  d.className = "totalItem";
-  d.innerHTML = `<span>${label}</span><b>${val}</b>`;
-  return d;
-}
-function scoreRow(category, badgeNum, p){
-  const row = document.createElement("div");
-  row.className = "ssRow";
-
-  if(categoryUsed(p, category)) row.classList.add("locked");
-  if(p.status[category] === "crossed") row.classList.add("crossed");
-  if(isScorecardLockedForTurn(p)) row.classList.add("turnLocked");
-  if(canEditCategoryThisTurn(p, category)) row.classList.add("editableMistake");
-
-  const left = document.createElement("div");
-  left.className = "ssLeft";
-  left.innerHTML = `
-    <div class="badge">${badgeNum}</div>
-    <div class="ssName">${category}</div>
-  `;
-
-  const right = document.createElement("div");
-  right.className = "ssVal";
-
-  if(p.status[category] === "scored"){
-    right.textContent = p.scores[category];
-  }else if(p.status[category] === "crossed"){
-    right.innerHTML = `<span class="crossMark">X</span>`;
-  }else{
-    right.textContent = "";
-  }
-
-  row.appendChild(left);
-  row.appendChild(right);
-
-  row.addEventListener("click", ()=> handleCategoryClick(category));
-  return row;
-}
-
 function handleCategoryClick(category){
-  const p = currentPlayer();
-  if(!p) return;
-
-  if(p.turnCommitted && !p.editMistakeMode){
-    alert("This turn is locked. Click Edit Mistake if you need to correct the entry, or click End Turn / Next Player.");
-    return;
-  }
-
-  if(p.editMistakeMode && p.lastTurnCategory !== category){
-    alert("In Edit Mistake mode, only the category entered this turn can be changed.");
-    return;
-  }
-
-  if(categoryUsed(p, category) && !canEditCategoryThisTurn(p, category)){
-    alert("That category has already been used.");
-    return;
-  }
-
+  if(blockIfAiBusy())return;
+  const p=currentPlayer();if(!p)return;
+  if(p.type==="ai"){alert("AI players choose categories automatically.");return;}
+  if(p.turnCommitted&&!p.editMistakeMode){alert("This turn is locked. Click Edit Mistake if you need to correct the entry, or click End Turn / Next Player.");return;}
+  if(p.editMistakeMode&&p.lastTurnCategory!==category){alert("In Edit Mistake mode, only the category entered this turn can be changed.");return;}
+  if(categoryUsed(p,category)&&!canEditCategoryThisTurn(p,category)){alert("That category has already been used.");return;}
   openScoreModal(category);
 }
-
 function renderDice(){
-  const p = currentPlayer();
-  const diceRow = document.getElementById("diceRow");
-  diceRow.innerHTML = "";
-  if(!p.diceOn) return;
-
-  const hasRolledAtLeastOnce = (p.rollsLeft < 3);
-  const holdsFrozen = (p.rollsLeft === 0) || (p.turnCommitted && !p.editMistakeMode);
-
+  const p=currentPlayer(),diceRow=document.getElementById("diceRow");diceRow.innerHTML="";if(!p.diceOn)return;
+  const hasRolledAtLeastOnce=p.rollsLeft<3,holdsFrozen=p.rollsLeft===0||(p.turnCommitted&&!p.editMistakeMode)||p.type==="ai";
   for(let i=0;i<5;i++){
-    const val = p.dice[i];
-    const die = document.createElement("div");
-    die.className = "die" + (val === 0 ? " blank" : "");
-    if(p.held[i]) die.classList.add("held");
-    if(holdsFrozen) die.classList.add("frozen");
-
-    const pips = [];
-    for(let k=1;k<=7;k++){
-      const dot = document.createElement("div");
-      dot.className = "pip p" + k;
-      pips.push(dot);
-      die.appendChild(dot);
-    }
-    setPips(pips, val);
-
-    const canToggleHold = hasRolledAtLeastOnce && !holdsFrozen && val !== 0;
-    if(canToggleHold){
-      die.addEventListener("click", ()=>{
-        p.held[i] = !p.held[i];
-        renderAll();
-      });
-    }
+    const val=p.dice[i],die=document.createElement("div");die.className="die"+(val===0?" blank":"");if(p.held[i])die.classList.add(p.type==="ai"?"aiHeld":"held");if(holdsFrozen)die.classList.add("frozen");
+    const pips=[];for(let k=1;k<=7;k++){const dot=document.createElement("div");dot.className="pip p"+k;pips.push(dot);die.appendChild(dot)}setPips(pips,val);
+    const canToggleHold=p.type!=="ai"&&hasRolledAtLeastOnce&&!holdsFrozen&&val!==0;
+    if(canToggleHold)die.addEventListener("click",()=>{p.held[i]=!p.held[i];renderAll();});
     diceRow.appendChild(die);
   }
 }
-function setPips(pips, val){
-  pips.forEach(dot=>dot.style.opacity="0");
-  const show = (...idxs)=> idxs.forEach(i=> pips[i-1].style.opacity="1");
-  switch(val){
-    case 1: show(1); break;
-    case 2: show(2,5); break;
-    case 3: show(2,1,5); break;
-    case 4: show(2,3,4,5); break;
-    case 5: show(2,3,1,4,5); break;
-    case 6: show(2,3,4,5,6,7); break;
-    default: break;
-  }
-}
+function setPips(pips,val){pips.forEach(dot=>dot.style.opacity="0");const show=(...idxs)=>idxs.forEach(i=>pips[i-1].style.opacity="1");switch(val){case 1:show(1);break;case 2:show(2,5);break;case 3:show(2,1,5);break;case 4:show(2,3,4,5);break;case 5:show(2,3,1,4,5);break;case 6:show(2,3,4,5,6,7);break;default:break}}
 
-const modalBackdrop = document.getElementById("modalBackdrop");
-const modalTitle = document.getElementById("modalTitle");
-const modalSub = document.getElementById("modalSub");
-const optGrid = document.getElementById("optGrid");
-const modalHint = document.getElementById("modalHint");
-const extraModalActions = document.getElementById("extraModalActions");
-const btnCloseModal = document.getElementById("btnCloseModal");
-
-btnCloseModal.addEventListener("click", closeModal);
-modalBackdrop.addEventListener("click", (e)=>{
-  if(e.target === modalBackdrop) closeModal();
-});
-
-let modalCategory = null;
-
+const modalBackdrop=document.getElementById("modalBackdrop"),modalTitle=document.getElementById("modalTitle"),modalSub=document.getElementById("modalSub"),optGrid=document.getElementById("optGrid"),modalHint=document.getElementById("modalHint"),extraModalActions=document.getElementById("extraModalActions"),btnCloseModal=document.getElementById("btnCloseModal");
+btnCloseModal.addEventListener("click",closeModal);modalBackdrop.addEventListener("click",e=>{if(e.target===modalBackdrop)closeModal();});let modalCategory=null;
 function openScoreModal(category){
-  const p = currentPlayer();
-  if(!p) return;
-
-  modalCategory = category;
-  const used = categoryUsed(p, category);
-  const isEdit = canEditCategoryThisTurn(p, category);
-  const status = p.status[category];
-  const oldVal = p.scores[category];
-
-  optGrid.innerHTML = "";
-  extraModalActions.innerHTML = "";
-
-  if(isEdit){
-    modalTitle.textContent = `Edit entry: ${category}`;
-    if(status === "crossed"){
-      modalSub.textContent = `Current entry: Crossed out`;
-    }else if(status === "scored"){
-      modalSub.textContent = `Current entry: ${oldVal}`;
-    }else{
-      modalSub.textContent = `Current entry: Blank`;
-    }
-    modalHint.textContent = `You are correcting the entry from this turn. You can change it, cross it out, or undo it back to blank.`;
-  }else{
-    modalTitle.textContent = `Select score for: ${category}`;
-    modalSub.textContent = "";
-    modalHint.textContent = `Choose a score, or use Cross Out Category if this category must be eliminated.`;
-  }
-
-  const opts = getOptionsForCategory(category);
-  opts.forEach(v=>{
-    const b = document.createElement("div");
-    b.className = "optBtn";
-    b.textContent = v;
-
-    if(status === "scored" && oldVal === v){
-      b.style.borderColor = "rgba(34,197,94,.8)";
-      b.style.background = "rgba(34,197,94,.12)";
-    }
-
-    b.addEventListener("click", ()=>{
-      commitCategory(category, "scored", v);
-    });
-    optGrid.appendChild(b);
-  });
-
-  const btnCrossOut = document.createElement("button");
-  btnCrossOut.className = "btn bad";
-  btnCrossOut.textContent = "Cross Out Category";
-  btnCrossOut.addEventListener("click", ()=>{
-    commitCategory(category, "crossed", null);
-  });
-  extraModalActions.appendChild(btnCrossOut);
-
-  if(isEdit){
-    const btnUndo = document.createElement("button");
-    btnUndo.className = "btn";
-    btnUndo.textContent = "Undo Entry";
-    btnUndo.addEventListener("click", ()=>{
-      commitCategory(category, "empty", null);
-    });
-    extraModalActions.appendChild(btnUndo);
-  }
-
-  modalBackdrop.style.display = "flex";
-  modalBackdrop.setAttribute("aria-hidden","false");
+  const p=currentPlayer();if(!p)return;modalCategory=category;const isEdit=canEditCategoryThisTurn(p,category),status=p.status[category],oldVal=p.scores[category];optGrid.innerHTML="";extraModalActions.innerHTML="";
+  if(isEdit){modalTitle.textContent=`Edit entry: ${category}`;modalSub.textContent=status==="crossed"?"Current entry: Crossed out":status==="scored"?`Current entry: ${oldVal}`:"Current entry: Blank";modalHint.textContent="You are correcting the entry from this turn. You can change it, cross it out, or undo it back to blank.";}
+  else{modalTitle.textContent=`Select score for: ${category}`;modalSub.textContent="";modalHint.textContent="Choose a score, or use Cross Out Category if this category must be eliminated.";}
+  getOptionsForCategory(category).forEach(v=>{const b=document.createElement("div");b.className="optBtn";b.textContent=v;if(status==="scored"&&oldVal===v){b.style.borderColor="rgba(34,197,94,.8)";b.style.background="rgba(34,197,94,.12)";}b.addEventListener("click",()=>commitCategory(category,"scored",v));optGrid.appendChild(b);});
+  const btnCrossOut=document.createElement("button");btnCrossOut.className="btn bad";btnCrossOut.textContent="Cross Out Category";btnCrossOut.addEventListener("click",()=>commitCategory(category,"crossed",null));extraModalActions.appendChild(btnCrossOut);
+  if(isEdit){const btnUndo=document.createElement("button");btnUndo.className="btn";btnUndo.textContent="Undo Entry";btnUndo.addEventListener("click",()=>commitCategory(category,"empty",null));extraModalActions.appendChild(btnUndo);}
+  modalBackdrop.style.display="flex";modalBackdrop.setAttribute("aria-hidden","false");
+}
+function commitCategory(category,newStatus,newValue){
+  const p=currentPlayer();if(!p||!category)return;const oldStatus=p.status[category],oldValue=p.scores[category],isEdit=canEditCategoryThisTurn(p,category);
+  if(isEdit){let labelOld=oldStatus==="crossed"?"X":oldStatus==="scored"?oldValue:"blank";let labelNew=newStatus==="crossed"?"X":newStatus==="scored"?newValue:"blank";if(labelOld!==labelNew&&!confirm(`Change "${category}" from ${labelOld} to ${labelNew}?`))return;}
+  applyCategoryResult(p,category,newStatus,newValue);
+  closeModal();renderAll();
+}
+function applyCategoryResult(p,category,newStatus,newValue){
+  if(newStatus==="empty"){p.status[category]="empty";p.scores[category]=null;p.turnCommitted=false;p.editMistakeMode=false;p.lastTurnCategory=null;}
+  else if(newStatus==="crossed"){p.status[category]="crossed";p.scores[category]=null;p.turnCommitted=true;p.editMistakeMode=false;p.lastTurnCategory=category;}
+  else if(newStatus==="scored"){p.status[category]="scored";p.scores[category]=newValue;p.turnCommitted=true;p.editMistakeMode=false;p.lastTurnCategory=category;}
+}
+function closeModal(){modalCategory=null;modalBackdrop.style.display="none";modalBackdrop.setAttribute("aria-hidden","true")}
+function getOptionsForCategory(category){
+  const opts=[];const add=arr=>arr.forEach(v=>opts.push(v));const uniqueSorted=arr=>Array.from(new Set(arr)).sort((a,b)=>a-b);
+  if(UPPER.includes(category)){const face=UPPER.indexOf(category)+1;add([face,2*face,3*face,4*face,5*face]);return uniqueSorted(opts)}
+  switch(category){case "One Pair":add([2,4,6,8,10,12]);return uniqueSorted(opts);case "Two Pairs":add([6,8,10,12,14,16,18,20,22]);return uniqueSorted(opts);case "Three of a kind":add([3,6,9,12,15,18]);return uniqueSorted(opts);case "Four of a kind":add([4,8,12,16,20,24]);return uniqueSorted(opts);case "Small straight":add([15]);return uniqueSorted(opts);case "Large straight":add([20]);return uniqueSorted(opts);case "Full House":{const arr=[];for(let v=7;v<=28;v++)arr.push(v);return arr}case "Chance":{const arr=[];for(let v=5;v<=30;v++)arr.push(v);return arr}case "Yahtzee":add([settings.bonusPoints]);return uniqueSorted(opts);default:return []}
 }
 
-function commitCategory(category, newStatus, newValue){
+function counts(dice){const c={1:0,2:0,3:0,4:0,5:0,6:0};dice.forEach(v=>{if(v)c[v]++});return c}
+function diceSum(dice){return dice.reduce((a,b)=>a+b,0)}
+function hasNKind(dice,n){const c=counts(dice);return Object.values(c).some(x=>x>=n)}
+function pairValues(dice){const c=counts(dice);return [1,2,3,4,5,6].filter(v=>c[v]>=2)}
+function scoreDiceForCategory(dice,cat){
+  const c=counts(dice),sum=diceSum(dice),pairs=pairValues(dice);
+  if(UPPER.includes(cat)){const face=UPPER.indexOf(cat)+1;return c[face]*face;}
+  switch(cat){
+    case "One Pair":return pairs.length?Math.max(...pairs)*2:0;
+    case "Two Pairs":return pairs.length>=2?pairs.sort((a,b)=>b-a).slice(0,2).reduce((s,v)=>s+v*2,0):0;
+    case "Three of a kind":{for(let v=6;v>=1;v--)if(c[v]>=3)return v*3;return 0;}
+    case "Four of a kind":{for(let v=6;v>=1;v--)if(c[v]>=4)return v*4;return 0;}
+    case "Small straight":return [1,2,3,4,5].every(v=>c[v]===1)?15:0;
+    case "Large straight":return [2,3,4,5,6].every(v=>c[v]===1)?20:0;
+    case "Full House":{const vals=Object.values(c).sort((a,b)=>b-a);return vals[0]===3&&vals[1]===2?sum:0;}
+    case "Chance":return sum;
+    case "Yahtzee":return Object.values(c).some(x=>x===5)?settings.bonusPoints:0;
+    default:return 0;
+  }
+}
+function aiAvailable(p){return ALL_CATEGORIES.filter(cat=>!categoryUsed(p,cat))}
+function aiChooseHolds(p,rollNumber){
+  const dice = p.dice;
+  const c = counts(dice);
+  const available = aiAvailable(p);
+  const held = [false,false,false,false,false];
+  const countValues = [1,2,3,4,5,6].map(v => ({v,n:c[v]})).sort((a,b) => b.n - a.n || b.v - a.v);
+  const best = countValues[0];
+
+  const markValue = (value) => {
+    dice.forEach((d,i) => held[i] = d === value);
+  };
+  const markValues = (values) => {
+    dice.forEach((d,i) => held[i] = values.includes(d));
+  };
+
+  const sortedCounts = Object.values(c).sort((a,b)=>b-a);
+  const isSmallStraight = [1,2,3,4,5].every(v => c[v] === 1);
+  const isLargeStraight = [2,3,4,5,6].every(v => c[v] === 1);
+  const isYahtzee = best.n === 5;
+  const isFullHouse = sortedCounts[0] === 3 && sortedCounts[1] === 2;
+
+  // Only keep all dice when there is a completed pattern worth stopping for.
+  if(available.includes("Yahtzee") && isYahtzee) return [true,true,true,true,true];
+  if(available.includes("Large straight") && isLargeStraight) return [true,true,true,true,true];
+  if(available.includes("Small straight") && isSmallStraight) return [true,true,true,true,true];
+  if(available.includes("Full House") && isFullHouse && rollNumber >= 2) return [true,true,true,true,true];
+
+  // Four of a kind: keep only the four matching dice.
+  if(best.n === 4){
+    markValue(best.v);
+    return held;
+  }
+
+  // Three of a kind: keep only the triple.
+  if(best.n === 3){
+    markValue(best.v);
+    return held;
+  }
+
+  // Chase straights when close, but only keep the straight-building dice.
+  const unique = Array.from(new Set(dice)).filter(Boolean);
+  const straightRuns = [[1,2,3,4,5],[2,3,4,5,6],[1,2,3,4],[2,3,4,5],[3,4,5,6]];
+  let bestRun = [];
+  straightRuns.forEach(run => {
+    const have = run.filter(v => unique.includes(v));
+    if(have.length > bestRun.length) bestRun = have;
+  });
+  if(bestRun.length >= 4 && (available.includes("Small straight") || available.includes("Large straight"))){
+    markValues(bestRun);
+    return held;
+  }
+
+  // Pair: keep only the best pair, not random extra dice.
+  if(best.n === 2){
+    const pairs = countValues.filter(x => x.n >= 2).sort((a,b)=>b.v-a.v);
+    markValue(pairs[0].v);
+    return held;
+  }
+
+  // No pair: only keep high dice for Chance near the end.
+  if(available.includes("Chance") && rollNumber >= 2){
+    dice.forEach((d,i) => held[i] = d >= 5);
+    return held;
+  }
+
+  // If nothing clear, keep one highest die only.
+  const highest = Math.max(...dice);
+  let usedOne = false;
+  dice.forEach((d,i) => {
+    if(d === highest && !usedOne){
+      held[i] = true;
+      usedOne = true;
+    }
+  });
+  return held;
+}
+function aiPickCategory(p){
+  const available=aiAvailable(p),dice=p.dice;
+  const scored=available.map(cat=>({cat,score:scoreDiceForCategory(dice,cat),weight:aiCategoryWeight(p,cat,scoreDiceForCategory(dice,cat))})).sort((a,b)=>b.weight-a.weight||b.score-a.score);
+  const best=scored[0];
+  if(best&&best.score>0&&best.weight>0)return {cat:best.cat,status:"scored",score:best.score,reason:`best value found`};
+  if(available.includes("Chance")){const s=scoreDiceForCategory(dice,"Chance");return {cat:"Chance",status:"scored",score:s,reason:"used Chance"};}
+  const crossOrder=["Ones","Twos","Threes","One Pair","Two Pairs","Three of a kind","Four of a kind","Small straight","Large straight","Full House","Yahtzee","Fours","Fives","Sixes"];
+  const cat=crossOrder.find(c=>available.includes(c))||available[0];
+  return {cat,status:"crossed",score:null,reason:"no useful score"};
+}
+function aiCategoryWeight(p,cat,score){
+  if(score<=0)return 0;
+  let w=score;
+  if(cat==="Yahtzee")w+=45;
+  if(cat==="Large straight")w+=20;
+  if(cat==="Small straight")w+=12;
+  if(cat==="Full House")w+=10;
+  if(cat==="Four of a kind")w+=8;
+  if(cat==="Three of a kind")w+=4;
+  if(UPPER.includes(cat)){
+    const face=UPPER.indexOf(cat)+1,needed=Math.max(0,settings.bonusTarget-upperTotal(p));
+    if(needed>0){w+=face*2;if(score>=face*3)w+=10;if(score>=needed)w+=18;}
+  }
+  if(cat==="Chance")w-=4;
+  return w;
+}
+async function playAiTurnIfCurrent(){
+  if(aiBusy) return;
+
   const p = currentPlayer();
-  if(!p || !category) return;
+  if(!p || p.type !== "ai") return;
 
-  const oldStatus = p.status[category];
-  const oldValue = p.scores[category];
-  const isEdit = canEditCategoryThisTurn(p, category);
+  if(p.turnCommitted){
+    alert("AI has already played this turn. Click End Turn / Next Player.");
+    return;
+  }
 
-  if(isEdit){
-    let labelOld = oldStatus === "crossed" ? "X" : (oldStatus === "scored" ? oldValue : "blank");
-    let labelNew = newStatus === "crossed" ? "X" : (newStatus === "scored" ? newValue : "blank");
-    if(labelOld !== labelNew){
-      const ok = confirm(`Change "${category}" from ${labelOld} to ${labelNew}?`);
-      if(!ok) return;
+  aiBusy = true;
+  p.diceOn = true;
+  p.dice = [0,0,0,0,0];
+  p.held = [false,false,false,false,false];
+  p.rollsLeft = 3;
+  p.lastAiPick = null;
+  p.aiNote = p.name + " is thinking...";
+  renderAll();
+  await sleep(900);
+
+  let log = [];
+
+  for(let r = 1; r <= 3; r++){
+    rollUnheldDice(p);
+    p.rollsLeft--;
+    log.push("Roll " + r + ": " + p.dice.join(" "));
+    p.aiNote = log.join("\n");
+    renderAll();
+    await sleep(1200);
+
+    if(r < 3){
+      p.held = aiChooseHolds(p, r);
+      const heldVals = p.dice.filter((d, i) => p.held[i]);
+      log.push("Held: " + (heldVals.length ? heldVals.join(" ") : "none"));
+      p.aiNote = log.join("\n");
+      renderAll();
+      await sleep(1200);
+
+      if(p.held.every(v => v === true)){
+        log.push("Stopping early: completed pattern.");
+        p.aiNote = log.join("\n");
+        renderAll();
+        await sleep(1000);
+        break;
+      }
     }
   }
 
-  if(newStatus === "empty"){
-    p.status[category] = "empty";
-    p.scores[category] = null;
-    p.turnCommitted = false;
-    p.editMistakeMode = false;
-    p.lastTurnCategory = null;
-  }else if(newStatus === "crossed"){
-    p.status[category] = "crossed";
-    p.scores[category] = null;
-    p.turnCommitted = true;
-    p.editMistakeMode = false;
-    p.lastTurnCategory = category;
-  }else if(newStatus === "scored"){
-    p.status[category] = "scored";
-    p.scores[category] = newValue;
-    p.turnCommitted = true;
-    p.editMistakeMode = false;
-    p.lastTurnCategory = category;
+  p.held = [true,true,true,true,true];
+  const pick = aiPickCategory(p);
+  const finalDecisionText = pick.status === "scored" ? (pick.cat + " for " + pick.score) : ("cross out " + pick.cat);
+  log.push("Final decision: " + finalDecisionText);
+  p.aiNote = log.join("\n");
+  renderAll();
+  await sleep(1500);
+
+  if(pick.status === "scored"){
+    applyCategoryResult(p, pick.cat, "scored", pick.score);
+    p.lastAiPick = pick.cat;
+    log.push("Recorded " + pick.cat + ": " + pick.score);
+  }else{
+    applyCategoryResult(p, pick.cat, "crossed", null);
+    p.lastAiPick = pick.cat;
+    log.push("Recorded X for " + pick.cat);
   }
 
-  closeModal();
+  p.aiNote = log.join("\n");
+  aiBusy = false;
   renderAll();
 }
 
-function closeModal(){
-  modalCategory = null;
-  modalBackdrop.style.display = "none";
-  modalBackdrop.setAttribute("aria-hidden","true");
-}
-
-function getOptionsForCategory(category){
-  const opts = [];
-  const add = (arr)=> arr.forEach(v=>opts.push(v));
-  const uniqueSorted = (arr)=>{
-    const s = Array.from(new Set(arr));
-    s.sort((a,b)=>a-b);
-    return s;
-  };
-
-  if(UPPER.includes(category)){
-    const face = UPPER.indexOf(category) + 1;
-    add([face, 2*face, 3*face, 4*face, 5*face]);
-    return uniqueSorted(opts);
-  }
-
-  switch(category){
-    case "One Pair": add([2,4,6,8,10,12]); return uniqueSorted(opts);
-    case "Two Pairs": add([6,8,10,12,14,16,18,20,22]); return uniqueSorted(opts);
-    case "Three of a kind": add([3,6,9,12,15,18]); return uniqueSorted(opts);
-    case "Four of a kind": add([4,8,12,16,20,24]); return uniqueSorted(opts);
-    case "Small straight": add([15]); return uniqueSorted(opts);
-    case "Large straight": add([20]); return uniqueSorted(opts);
-    case "Full House":{
-      const arr = [];
-      for(let v=7; v<=28; v++) arr.push(v);
-      return arr;
-    }
-    case "Chance":{
-      const arr = [];
-      for(let v=5; v<=30; v++) arr.push(v);
-      return arr;
-    }
-    case "Yahtzee":
-      add([settings.bonusPoints]);
-      return uniqueSorted(opts);
-    default:
-      return [];
-  }
-}
-
-const endBackdrop = document.getElementById("endBackdrop");
-const endTitle = document.getElementById("endTitle");
-const endSummary = document.getElementById("endSummary");
-const leaderboard = document.getElementById("leaderboard");
-const btnCloseEnd = document.getElementById("btnCloseEnd");
-const btnCloseEnd2 = document.getElementById("btnCloseEnd2");
-const btnNewGame2 = document.getElementById("btnNewGame2");
-
-btnCloseEnd.addEventListener("click", closeEnd);
-btnCloseEnd2.addEventListener("click", closeEnd);
-endBackdrop.addEventListener("click", (e)=>{
-  if(e.target === endBackdrop) closeEnd();
-});
-btnNewGame2.addEventListener("click", ()=>{
-  closeEnd();
-  startNewGameToSetup();
-});
-
+const endBackdrop=document.getElementById("endBackdrop"),endTitle=document.getElementById("endTitle"),endSummary=document.getElementById("endSummary"),leaderboard=document.getElementById("leaderboard"),btnCloseEnd=document.getElementById("btnCloseEnd"),btnCloseEnd2=document.getElementById("btnCloseEnd2"),btnNewGame2=document.getElementById("btnNewGame2");
+btnCloseEnd.addEventListener("click",closeEnd);btnCloseEnd2.addEventListener("click",closeEnd);endBackdrop.addEventListener("click",e=>{if(e.target===endBackdrop)closeEnd();});btnNewGame2.addEventListener("click",()=>{closeEnd();startNewGameToSetup();});
 function maybeShowGameOver(){
-  if(gameOverShown) return;
-  if(!isGameFinished()) return;
-
-  gameOverShown = true;
-
-  const standings = players.map(p=>({
-    name: p.name,
-    total: grandTotal(p),
-    upper: upperTotal(p),
-    bonus: bonusEarned(p),
-    lower: lowerTotal(p)
-  })).sort((a,b)=> b.total - a.total);
-
-  const topScore = standings[0].total;
-  const winners = standings.filter(s=> s.total === topScore).map(s=>s.name);
-
-  if(winners.length === 1){
-    endTitle.textContent = `Winner: ${winners[0]} (${topScore})`;
-    endSummary.textContent = `Final results are in. ${winners[0]} wins with ${topScore} points.`;
-  }else{
-    endTitle.textContent = `Tie! (${topScore})`;
-    endSummary.textContent = `Final results are in. Tie between: ${winners.join(", ")} — all with ${topScore} points.`;
-  }
-
-  leaderboard.innerHTML = "";
-  standings.forEach((s, i)=>{
-    const row = document.createElement("div");
-    row.className = "leaderRow";
-
-    const isWinner = s.total === topScore;
-    row.innerHTML = `
-      <div class="leaderLeft">
-        <div class="place">${i+1}</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div>${escapeHtml(s.name)}</div>
-            ${isWinner ? `<span class="winnerTag">Winner</span>` : ``}
-          </div>
-          <div class="mini">Upper ${s.upper} + Bonus ${s.bonus} + Lower ${s.lower}</div>
-        </div>
-      </div>
-      <div>${s.total}</div>
-    `;
-    leaderboard.appendChild(row);
-  });
-
+  if(gameOverShown||!isGameFinished())return;gameOverShown=true;
+  const standings=players.map(p=>({name:p.name,total:grandTotal(p),upper:upperTotal(p),bonus:bonusEarned(p),lower:lowerTotal(p),type:p.type})).sort((a,b)=>b.total-a.total);
+  const topScore=standings[0].total,winners=standings.filter(s=>s.total===topScore).map(s=>s.name);
+  if(winners.length===1){endTitle.textContent=`Winner: ${winners[0]} (${topScore})`;endSummary.textContent=`Final results are in. ${winners[0]} wins with ${topScore} points.`;}else{endTitle.textContent=`Tie! (${topScore})`;endSummary.textContent=`Final results are in. Tie between: ${winners.join(", ")} — all with ${topScore} points.`;}
+  leaderboard.innerHTML="";standings.forEach((s,i)=>{const row=document.createElement("div");row.className="leaderRow";const isWinner=s.total===topScore;row.innerHTML=`<div class="leaderLeft"><div class="place">${i+1}</div><div><div style="display:flex;align-items:center;gap:8px;"><div>${escapeHtml(s.name)}${s.type==="ai"?" (AI)":""}</div>${isWinner?`<span class="winnerTag">Winner</span>`:``}</div><div class="mini">Upper ${s.upper} + Bonus ${s.bonus} + Lower ${s.lower}</div></div></div><div>${s.total}</div>`;leaderboard.appendChild(row);});
   openEnd();
 }
-
-function openEnd(){
-  endBackdrop.style.display = "flex";
-  endBackdrop.setAttribute("aria-hidden","false");
-}
-function closeEnd(){
-  endBackdrop.style.display = "none";
-  endBackdrop.setAttribute("aria-hidden","true");
-}
-
+function openEnd(){endBackdrop.style.display="flex";endBackdrop.setAttribute("aria-hidden","false")}
+function closeEnd(){endBackdrop.style.display="none";endBackdrop.setAttribute("aria-hidden","true")}
 renderPlayerList();
 </script>
 </body>
